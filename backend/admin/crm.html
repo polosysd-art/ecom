@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CRM - Admin Dashboard</title>
+    <link rel="stylesheet" href="../../shared/navigation.css">
+    <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="admin-page">
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+        </div>
+        <div class="top-bar-center">
+            <img class="store-logo" id="store-logo" alt="Store Logo">
+            <div class="top-bar-title">Customer Management</div>
+        </div>
+        <div class="top-bar-right">
+            <button class="icon-btn" onclick="window.location.href='../../index.html'"><i class="fas fa-home"></i></button>
+            <button class="icon-btn" id="admin-logout"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">Dashboard</a>
+            <a href="orders.html" class="nav-item">Orders</a>
+            <a href="crm.html" class="nav-item">CRM</a>
+            <a href="gallery.html" class="nav-item">Gallery</a>
+            <a href="products.html" class="nav-item">Product Studio</a>
+            <a href="product-settings.html" class="nav-item">Product Settings</a>
+            <a href="page-settings.html" class="nav-item">Admin Settings</a>
+            <a href="../../index.html" class="nav-item">View Store</a>
+        </nav>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="messenger-container">
+            <!-- Left Side - Customer List -->
+            <div class="chat-list">
+                <div class="chat-header">
+                    <h3>Customers</h3>
+                </div>
+                
+                <div class="chat-items" id="customers-list">
+                    <!-- Customers loaded here -->
+                </div>
+            </div>
+
+            <!-- Right Side - Customer Detail -->
+            <div class="chat-detail">
+
+                
+                <div class="order-detail-view" id="customer-detail-view" style="display: none;">
+                    <div class="detail-header">
+                        <div class="order-name-line">
+                            <h3 id="customer-title">Customer Details</h3>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn-chat" id="chat-customer-btn" onclick="chatWithSelectedCustomer()"><i class="fas fa-comment"></i> Chat</button>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-content">
+                        <div id="customer-content">
+                            <!-- Customer details loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Customer Modal -->
+    <div id="mobile-customer-modal" class="mobile-modal" style="display: none;">
+        <div class="mobile-modal-header">
+            <button class="mobile-back-btn" onclick="closeMobileCustomerModal()"><i class="fas fa-arrow-left"></i></button>
+            <h3 id="mobile-customer-title">Customer Details</h3>
+        </div>
+        <div class="mobile-modal-content" id="mobile-customer-content">
+            <!-- Mobile customer content loaded here -->
+        </div>
+        <div class="mobile-modal-footer">
+            <button class="btn-chat-mobile" onclick="chatWithSelectedCustomer()"><i class="fas fa-comment"></i> Chat on WhatsApp</button>
+        </div>
+    </div>
+
+    <script type="module" src="../../shared/navigation.js"></script>
+    <script type="module" src="auth-check.js"></script>
+    <script type="module" src="crm.js"></script>
+    <script>
+        // Select customer function
+        window.selectCustomer = function(customerId) {
+            // Remove active class from all items
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to selected item
+            document.querySelector(`[data-customer="${customerId}"]`).classList.add('active');
+            
+            // Mobile: Show modal
+            if (window.innerWidth <= 768) {
+                showMobileCustomerModal(customerId);
+                return;
+            }
+            
+            // Desktop: Show customer detail view
+            document.getElementById('customer-detail-view').style.display = 'flex';
+            
+            // Load customer content
+            loadCustomerContent(customerId);
+        }
+        
+        // Show mobile customer modal
+        function showMobileCustomerModal(customerId) {
+            const customer = window.customers?.find(c => c.id === customerId);
+            if (!customer) return;
+            
+            selectedCustomerId = customerId;
+            document.getElementById('mobile-customer-title').textContent = customer.name;
+            
+            document.getElementById('mobile-customer-content').innerHTML = `
+                <div class="form-section">
+                    <h3>Customer Information</h3>
+                    <div class="info-row">
+                        <label>Name:</label>
+                        <span>${customer.name}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Email:</label>
+                        <span>${customer.email}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Phone:</label>
+                        <span>${customer.phone}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Address:</label>
+                        <span>${customer.address}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Joined Date:</label>
+                        <span>${new Date(customer.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Last Login:</label>
+                        <span>${new Date(customer.lastLogin).toLocaleDateString()}</span>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('mobile-customer-modal').style.display = 'flex';
+        }
+        
+        // Close mobile customer modal
+        window.closeMobileCustomerModal = function() {
+            document.getElementById('mobile-customer-modal').style.display = 'none';
+        }
+        
+        // Chat with selected customer
+        let selectedCustomerId = null;
+        
+        window.chatWithSelectedCustomer = function() {
+            if (!selectedCustomerId) return;
+            
+            const customer = window.customers?.find(c => c.id === selectedCustomerId);
+            if (!customer || !customer.phone || customer.phone === 'N/A') {
+                alert('Customer phone number not available');
+                return;
+            }
+            
+            const message = `Hi ${customer.name}! How can we help you today?`;
+            const phoneNumber = customer.phone.replace(/[^0-9]/g, '');
+            const fullPhoneNumber = phoneNumber.startsWith('91') ? phoneNumber : '91' + phoneNumber;
+            const whatsappUrl = `https://wa.me/${fullPhoneNumber}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+        
+        // Load customer content
+        function loadCustomerContent(customerId) {
+            selectedCustomerId = customerId;
+            const customer = window.customers?.find(c => c.id === customerId);
+            if (!customer) return;
+            
+            // Update header title
+            document.getElementById('customer-title').textContent = customer.name;
+            
+            const content = document.getElementById('customer-content');
+            content.innerHTML = `
+                <div class="form-section">
+                    <h3>Customer Information</h3>
+                    <div class="info-row">
+                        <label>Name:</label>
+                        <span>${customer.name}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Email:</label>
+                        <span>${customer.email}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Phone:</label>
+                        <span>${customer.phone}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Address:</label>
+                        <span>${customer.address}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Joined Date:</label>
+                        <span>${new Date(customer.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Last Login:</label>
+                        <span>${new Date(customer.lastLogin).toLocaleDateString()}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+
+    </script>
+</body>
+</html>

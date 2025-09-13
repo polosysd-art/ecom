@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Ecommerce Store</title>
+    <link rel="stylesheet" href="shared/navigation.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+        </div>
+        <div class="top-bar-center">
+            <img class="store-logo" id="store-logo" alt="Store Logo">
+            <div class="top-bar-title"></div>
+        </div>
+        <div class="top-bar-right">
+            <button class="icon-btn" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2></h2>
+            <p>Please login to continue</p>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Shop</div>
+                <a href="index.html" class="nav-item">Home</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="login.html" class="nav-item active">Login</a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="login-container">
+            <div class="login-card">
+                <h2>Welcome</h2>
+                <p>Login to your account</p>
+                
+                <form id="login-form">
+                    <input type="email" id="email" placeholder="Email" required>
+                    <input type="password" id="password" placeholder="Password" required>
+                    <button type="submit" class="btn">Login</button>
+                </form>
+                
+                <div class="signup-section" id="signup-section" style="display:none;">
+                    <h3>Create Account</h3>
+                    <form id="signup-form">
+                        <input type="text" id="signup-name" placeholder="Full Name" required>
+                        <input type="tel" id="signup-phone" placeholder="Phone Number" required>
+                        <input type="email" id="signup-email" placeholder="Email" required>
+                        <input type="password" id="signup-password" placeholder="Password" required>
+                        <button type="submit" class="btn">Sign Up</button>
+                    </form>
+                </div>
+                
+                <div class="auth-links">
+                    <a href="#" id="signup-toggle">Create Account</a>
+                    <a href="#" id="login-toggle" style="display:none;">Back to Login</a>
+                </div>
+                
+                <div id="auth-message" class="message"></div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script type="module" src="shared/navigation.js"></script>
+    <script type="module" src="gateway.js"></script>
+</body>
+</html>

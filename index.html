@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecommerce Store</title>
+    <link rel="stylesheet" href="shared/navigation.css">
+    <link rel="stylesheet" href="frontend/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+        </div>
+        <div class="top-bar-center">
+            <img class="store-logo" id="store-logo" alt="Store Logo">
+            <div class="top-bar-title"></div>
+        </div>
+        <div class="top-bar-right">
+            <button class="icon-btn search-btn"><i class="fas fa-search"></i></button>
+            <button class="icon-btn cart-btn">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-item active">Home</a>
+            <a href="frontend/shopping-cart.html" class="nav-item">Cart</a>
+            <a href="frontend/orders.html" class="nav-item" id="orders-nav" style="display:none;">My Orders</a>
+            <a href="frontend/profile.html" class="nav-item" id="profile-nav" style="display:none;">Profile</a>
+            <a href="login.html" class="nav-item" id="login-nav">Login</a>
+            <a href="#" class="nav-item" id="admin-nav" style="display:none;">Admin Panel</a>
+            <a href="#" class="nav-item" id="logout-nav" style="display:none;">Logout</a>
+        </nav>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <section class="hero" id="hero-section">
+            <div class="hero-banner" id="hero-banner" style="display:none;">
+                <img id="hero-banner-img" alt="Hero Banner">
+            </div>
+            <div class="hero-content">
+                <h2 id="hero-title"></h2>
+                <p id="hero-subtitle"></p>
+            </div>
+        </section>
+
+        <section class="products-section">
+            <div class="animated-header">
+                <div class="bubbles">
+                    <div class="bubble"></div>
+                    <div class="bubble"></div>
+                    <div class="bubble"></div>
+                    <div class="bubble"></div>
+                    <div class="bubble"></div>
+                    <div class="bubble"></div>
+                </div>
+                <h1 class="animated-title" id="animated-title">CYBEE CART</h1>
+            </div>
+            <div class="products-grid" id="products-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </section>
+
+    </div>
+
+    <script type="module" src="shared/navigation.js"></script>
+    <script type="module" src="frontend/js/store.js"></script>
+    <script type="module" src="frontend/js/page-content.js"></script>
+    <script type="module" src="frontend/js/products-loader.js"></script>
+</body>
+</html>

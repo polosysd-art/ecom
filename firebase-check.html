@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Orders Check</title>
+</head>
+<body>
+    <h2>Firebase Orders Database Check</h2>
+    <button onclick="checkOrders()">Check All Orders</button>
+    <button onclick="checkUsers()">Check All Users</button>
+    <div id="results"></div>
+
+    <script type="module">
+        import { db, auth } from './frontend/config/firebase-config.js';
+        import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+        import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+
+        let currentUser = null;
+        
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                document.getElementById('results').innerHTML = `<p>Logged in as: ${user.email} (ID: ${user.uid})</p>`;
+            } else {
+                document.getElementById('results').innerHTML = '<p>Not logged in</p>';
+            }
+        });
+
+        window.checkOrders = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'orders'));
+                const results = document.getElementById('results');
+                
+                if (querySnapshot.empty) {
+                    results.innerHTML += '<h3>No orders found in Firebase</h3>';
+                    return;
+                }
+                
+                results.innerHTML += `<h3>Found ${querySnapshot.size} orders:</h3>`;
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    results.innerHTML += `
+                        <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                            <strong>Order ID:</strong> ${doc.id}<br>
+                            <strong>User ID:</strong> ${data.userId || 'No userId'}<br>
+                            <strong>Customer:</strong> ${data.customerInfo?.name || 'No name'} (${data.customerInfo?.email || 'No email'})<br>
+                            <strong>Total:</strong> ₹${data.total}<br>
+                            <strong>Date:</strong> ${data.orderDate}<br>
+                            <strong>Items:</strong> ${data.items?.length || 0} items<br>
+                            <details>
+                                <summary>Full Data</summary>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </details>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                document.getElementById('results').innerHTML += `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        window.checkUsers = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'users'));
+                const results = document.getElementById('results');
+                
+                if (querySnapshot.empty) {
+                    results.innerHTML += '<h3>No users found in Firebase</h3>';
+                    return;
+                }
+                
+                results.innerHTML += `<h3>Found ${querySnapshot.size} users:</h3>`;
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    results.innerHTML += `
+                        <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                            <strong>User ID:</strong> ${doc.id}<br>
+                            <strong>Name:</strong> ${data.name || 'No name'}<br>
+                            <strong>Phone:</strong> ${data.phone || 'No phone'}<br>
+                            <strong>Address:</strong> ${data.address || 'No address'}<br>
+                            <strong>Addresses:</strong> ${data.addresses?.length || 0} saved addresses<br>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                document.getElementById('results').innerHTML += `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

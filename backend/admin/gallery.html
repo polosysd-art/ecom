@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery - Admin Dashboard</title>
+    <link rel="stylesheet" href="../../shared/navigation.css">
+    <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="admin-page">
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+        </div>
+        <div class="top-bar-center">
+            <img class="store-logo" id="store-logo" alt="Store Logo">
+            <div class="top-bar-title">Gallery Management</div>
+        </div>
+        <div class="top-bar-right">
+            <button class="icon-btn" id="upload-btn"><i class="fas fa-upload"></i></button>
+            <button class="icon-btn" onclick="window.location.href='../../index.html'"><i class="fas fa-home"></i></button>
+            <button class="icon-btn" id="admin-logout"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">Dashboard</a>
+            <a href="orders.html" class="nav-item">Orders</a>
+            <a href="crm.html" class="nav-item">CRM</a>
+            <a href="gallery.html" class="nav-item">Gallery</a>
+            <a href="products.html" class="nav-item">Product Studio</a>
+            <a href="product-settings.html" class="nav-item">Product Settings</a>
+            <a href="page-settings.html" class="nav-item">Admin Settings</a>
+            <a href="../../index.html" class="nav-item">View Store</a>
+        </nav>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <main class="admin-main">
+            <div class="section-header">
+                <h2>Image Gallery</h2>
+                <p>Upload and manage images for your store</p>
+            </div>
+
+            <div class="gallery-container">
+                <div class="gallery-grid" id="gallery-grid">
+                    <!-- Images will be loaded here -->
+                </div>
+            </div>
+            
+            <input type="file" id="image-upload" multiple accept="image/*" hidden>
+        </main>
+    </div>
+
+    <script type="module" src="../../shared/navigation.js"></script>
+    <script type="module" src="gallery.js"></script>
+</body>
+</html>

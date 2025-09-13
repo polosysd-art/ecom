@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Settings - Admin Dashboard</title>
+    <link rel="stylesheet" href="../../shared/navigation.css">
+    <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="admin-page">
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+        </div>
+        <div class="top-bar-center">
+            <img class="store-logo" id="store-logo" alt="Store Logo">
+            <div class="top-bar-title">Product Settings</div>
+        </div>
+        <div class="top-bar-right">
+            <button class="icon-btn" onclick="window.location.href='../../index.html'"><i class="fas fa-home"></i></button>
+            <button class="icon-btn" id="admin-logout"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">Dashboard</a>
+            <a href="orders.html" class="nav-item">Orders</a>
+            <a href="crm.html" class="nav-item">CRM</a>
+            <a href="gallery.html" class="nav-item">Gallery</a>
+            <a href="products.html" class="nav-item">Product Studio</a>
+            <a href="product-settings.html" class="nav-item">Product Settings</a>
+            <a href="page-settings.html" class="nav-item">Admin Settings</a>
+            <a href="../../index.html" class="nav-item">View Store</a>
+        </nav>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <main class="admin-main">
+            <div class="section-header">
+                <h2>Product Settings</h2>
+                <p>Manage product attributes and store configuration</p>
+            </div>
+            
+
+
+            <!-- Product Attributes -->
+            <div class="attributes-container">
+                <h3>Product Attributes</h3>
+                <div class="attributes-grid">
+                    <!-- Categories -->
+                    <div class="attribute-card">
+                        <h4>Categories</h4>
+                        <div class="attribute-list" id="categories-list"></div>
+                        <div class="add-attribute">
+                            <input type="text" id="new-category" placeholder="Add new category">
+                            <button class="btn" onclick="addAttribute('categories')">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Brands -->
+                    <div class="attribute-card">
+                        <h4>Brands</h4>
+                        <div class="attribute-list" id="brands-list"></div>
+                        <div class="add-attribute">
+                            <input type="text" id="new-brand" placeholder="Add new brand">
+                            <button class="btn" onclick="addAttribute('brands')">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Colors -->
+                    <div class="attribute-card">
+                        <h4>Colors</h4>
+                        <div class="attribute-list" id="colors-list"></div>
+                        <div class="add-attribute">
+                            <input type="text" id="new-color" placeholder="Add new color">
+                            <button class="btn" onclick="addAttribute('colors')">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Sizes -->
+                    <div class="attribute-card">
+                        <h4>Sizes</h4>
+                        <div class="attribute-list" id="sizes-list"></div>
+                        <div class="add-attribute">
+                            <input type="text" id="new-size" placeholder="Add new size">
+                            <button class="btn" onclick="addAttribute('sizes')">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Units -->
+                    <div class="attribute-card">
+                        <h4>Units</h4>
+                        <div class="attribute-list" id="units-list"></div>
+                        <div class="add-attribute">
+                            <input type="text" id="new-unit" placeholder="Add new unit">
+                            <button class="btn" onclick="addAttribute('units')">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script type="module" src="../../shared/navigation.js"></script>
+    <script type="module" src="auth-check.js"></script>
+    <script type="module" src="product-settings.js"></script>
+</body>
+</html>
