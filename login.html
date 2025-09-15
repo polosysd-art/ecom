@@ -4,82 +4,361 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Ecommerce Store</title>
-    <link rel="stylesheet" href="shared/navigation.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <!-- Top Bar -->
-    <div class="top-bar">
-        <div class="top-bar-left">
-            <button class="menu-toggle"><i class="fas fa-bars"></i></button>
-        </div>
-        <div class="top-bar-center">
-            <img class="store-logo" id="store-logo" alt="Store Logo">
-            <div class="top-bar-title"></div>
-        </div>
-        <div class="top-bar-right">
-            <button class="icon-btn" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
-        </div>
-    </div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom fixed-top">
+        <div class="container-fluid">
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2></h2>
-            <p>Please login to continue</p>
+            <a class="navbar-brand mx-auto text-white" href="#">
+                <img id="store-logo" alt="Store Logo" style="max-height: 40px; display: none;">
+                <span id="topbar-text" class="fw-bold"></span>
+            </a>
+            <a href="index.html" class="text-white text-decoration-none">
+                <i class="fas fa-home"></i>
+            </a>
         </div>
-        <nav class="sidebar-nav">
-            <div class="nav-section">
-                <div class="nav-section-title">Shop</div>
-                <a href="index.html" class="nav-item">Home</a>
+    </nav>
+    
+    <div id="main-content" class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-dark" style="padding-top: 80px;">
+        <style>
+            @media (max-width: 768px) {
+                .login-container { margin-top: -100px; }
+            }
+            .loader {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #1a1a1a;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+            }
+            .dots {
+                display: flex;
+                gap: 8px;
+            }
+            .dot {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                animation: bounce 1.4s infinite;
+            }
+            .dot:nth-child(1) { background: #ff6b6b; animation-delay: 0s; }
+            .dot:nth-child(2) { background: #4ecdc4; animation-delay: 0.2s; }
+            .dot:nth-child(3) { background: #45b7d1; animation-delay: 0.4s; }
+            @keyframes bounce {
+                0%, 80%, 100% { transform: translateY(0); }
+                40% { transform: translateY(-20px); }
+            }
+        </style>
+        
+        <div id="loader" class="loader">
+            <div class="dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
             </div>
-            <div class="nav-section">
-                <div class="nav-section-title">Account</div>
-                <a href="login.html" class="nav-item active">Login</a>
-            </div>
-        </nav>
-    </div>
+        </div>
 
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay"></div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="login-container">
-            <div class="login-card">
-                <h2>Welcome</h2>
-                <p>Login to your account</p>
+        <div class="card bg-dark text-white border-secondary shadow login-container" style="width: 100%; max-width: 400px;">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <h2 id="welcome-title" class="card-title text-white" style="display: none;"></h2>
+                    <p id="login-subtitle-text" class="text-light">Login to your account</p>
+                </div>
                 
                 <form id="login-form">
-                    <input type="email" id="email" placeholder="Email" required>
-                    <input type="password" id="password" placeholder="Password" required>
-                    <button type="submit" class="btn">Login</button>
+                    <div class="mb-3">
+                        <input type="email" class="form-control" id="email" placeholder="Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="password" class="form-control" id="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-secondary w-100">Login</button>
                 </form>
                 
-                <div class="signup-section" id="signup-section" style="display:none;">
-                    <h3>Create Account</h3>
+                <div id="signup-section" class="d-none">
+                    <h3 class="text-center mt-4 mb-3">Create Account</h3>
                     <form id="signup-form">
-                        <input type="text" id="signup-name" placeholder="Full Name" required>
-                        <input type="tel" id="signup-phone" placeholder="Phone Number" required>
-                        <input type="email" id="signup-email" placeholder="Email" required>
-                        <input type="password" id="signup-password" placeholder="Password" required>
-                        <button type="submit" class="btn">Sign Up</button>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="signup-name" placeholder="Full Name" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="tel" class="form-control" id="signup-phone" placeholder="Phone Number" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" class="form-control" id="signup-email" placeholder="Email" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" id="signup-password" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary w-100">Sign Up</button>
                     </form>
                 </div>
                 
-                <div class="auth-links">
-                    <a href="#" id="signup-toggle">Create Account</a>
-                    <a href="#" id="login-toggle" style="display:none;">Back to Login</a>
+                <div class="text-center mt-3">
+                    <a href="#" id="signup-toggle" class="text-decoration-none">Create Account</a>
+                    <a href="#" id="login-toggle" class="text-decoration-none d-none">Back to Login</a>
                 </div>
                 
-                <div id="auth-message" class="message"></div>
+                <div id="auth-message"></div>
             </div>
         </div>
-
-
     </div>
+    <div id="copyright-footer" class="position-fixed bottom-0 w-100 text-center py-2 text-light small">© 2024 Test</div>
 
-    <script type="module" src="shared/navigation.js"></script>
-    <script type="module" src="gateway.js"></script>
+    <script type="module">
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBsdPghRmOsLX7JIj-T8IYF4bRp-KxQAPc",
+            authDomain: "cybee-ca5a2.firebaseapp.com",
+            projectId: "cybee-ca5a2",
+            storageBucket: "cybee-ca5a2.firebasestorage.app",
+            messagingSenderId: "215321650697",
+            appId: "1:215321650697:web:d0bbf35f6861a891c9bad8"
+        };
+
+        // Initialize Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Admin emails
+        const ADMIN_EMAILS = ['admin@cybee.com'];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            checkAuthState();
+            loadLoginSettings();
+        });
+        
+        window.addEventListener('load', () => {
+            document.getElementById('loader').style.display = 'none';
+        });
+        
+
+        
+
+
+        // Load login settings
+        async function loadLoginSettings() {
+            try {
+                const { onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                onSnapshot(doc(db, 'settings', 'pages'), (doc) => {
+                    if (doc.exists()) {
+                        const data = doc.data();
+                        console.log('Settings loaded:', data);
+                        
+                        const topbarEl = document.getElementById('topbar-text');
+                        if (data.topbarLogoText) {
+                            topbarEl.textContent = data.topbarLogoText;
+                        }
+                        if (data.topbarFont) {
+                            topbarEl.style.fontFamily = data.topbarFont;
+                        }
+                        
+                        const welcomeEl = document.getElementById('welcome-title');
+                        if (data.welcomeText) {
+                            welcomeEl.textContent = data.welcomeText;
+                            welcomeEl.style.display = 'block';
+                        }
+                        if (data.welcomeFont) {
+                            welcomeEl.style.fontFamily = data.welcomeFont;
+                        }
+                        
+                        const subtitleEl = document.getElementById('login-subtitle-text');
+                        if (data.loginSubtitle) {
+                            subtitleEl.textContent = data.loginSubtitle;
+                        }
+                        
+                        const copyrightEl = document.getElementById('copyright-footer');
+                        if (data.copyrightText) {
+                            copyrightEl.textContent = data.copyrightText;
+                        }
+                        if (data.copyrightFont) {
+                            copyrightEl.style.fontFamily = data.copyrightFont;
+                        }
+                    } else {
+                        console.log('No settings document found');
+                    }
+                });
+            } catch (error) {
+                console.log('Settings load failed:', error);
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('signup-form').addEventListener('submit', handleSignup);
+            document.getElementById('signup-toggle').addEventListener('click', (e) => {
+                e.preventDefault();
+                showSignupForm();
+            });
+            document.getElementById('login-toggle').addEventListener('click', (e) => {
+                e.preventDefault();
+                showLoginForm();
+            });
+        }
+
+        // Check authentication state
+        function checkAuthState() {
+            onAuthStateChanged(auth, (user) => {
+                // Only redirect if user is logged in and came from a successful login/signup
+                // Don't auto-redirect to allow manual access to login page
+            });
+        }
+
+        // Handle login
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                document.getElementById('loader').style.display = 'flex';
+                setTimeout(() => {
+                    window.location.href = './index.html';
+                }, 1500);
+            } catch (error) {
+                handleLoginError(error);
+            }
+        }
+
+        // Handle login errors
+        function handleLoginError(error) {
+            let errorMessage = 'Login failed';
+            
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    errorMessage = 'No account found with this email.';
+                    break;
+                case 'auth/wrong-password':
+                    errorMessage = 'Incorrect password. Please try again.';
+                    break;
+                case 'auth/invalid-credential':
+                    errorMessage = 'Invalid email or password. Please check your credentials.';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = 'Invalid email address';
+                    break;
+                case 'auth/too-many-requests':
+                    errorMessage = 'Too many failed attempts. Try again later.';
+                    break;
+                default:
+                    errorMessage = 'Login failed: ' + error.message;
+            }
+            
+            showMessage(errorMessage, 'error');
+        }
+
+        // Handle signup
+        async function handleSignup(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('signup-name').value;
+            const phone = document.getElementById('signup-phone').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Account...';
+            
+            try {
+                // Create user account
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // Store user data in Firestore
+                try {
+                    await setDoc(doc(db, 'users', user.uid), {
+                        name: name,
+                        phone: phone,
+                        email: email,
+                        createdAt: new Date().toISOString()
+                    });
+                } catch (firestoreError) {
+                    console.log('Firestore write error:', firestoreError);
+                }
+                
+                document.getElementById('loader').style.display = 'flex';
+                setTimeout(() => {
+                    window.location.href = './index.html';
+                }, 1500);
+                
+            } catch (error) {
+                // Stop loading
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sign Up';
+                
+                let errorMessage = 'Signup failed';
+                
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = 'Email already in use. Switching to login...';
+                        setTimeout(() => {
+                            showLoginForm();
+                        }, 2000);
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = 'Password should be at least 6 characters';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Invalid email address';
+                        break;
+                    default:
+                        errorMessage = error.message;
+                }
+                
+                showMessage(errorMessage, 'error');
+            }
+        }
+
+        // Show signup form
+        function showSignupForm() {
+            document.getElementById('login-form').classList.add('d-none');
+            document.getElementById('signup-section').classList.remove('d-none');
+            document.getElementById('signup-toggle').classList.add('d-none');
+            document.getElementById('login-toggle').classList.remove('d-none');
+        }
+
+        // Show login form
+        function showLoginForm() {
+            document.getElementById('login-form').classList.remove('d-none');
+            document.getElementById('signup-section').classList.add('d-none');
+            document.getElementById('signup-toggle').classList.remove('d-none');
+            document.getElementById('login-toggle').classList.add('d-none');
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('auth-message');
+            messageDiv.innerHTML = message;
+            messageDiv.className = `alert mt-3 ${type === 'error' ? 'alert-danger' : 'alert-success'}`;
+            
+            // Clear message after 5 seconds
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+                messageDiv.className = '';
+            }, 5000);
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

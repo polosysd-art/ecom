@@ -1,0 +1,27 @@
+/* Stock-based color identification */
+.chat-item.stock-out {
+    border-left: 4px solid #dc3545;
+    background-color: #fff5f5;
+}
+
+.chat-item.stock-low {
+    border-left: 4px solid #ffc107;
+    background-color: #fffbf0;
+}
+
+.chat-item.stock-ok {
+    border-left: 4px solid #198754;
+    background-color: #f0fff4;
+}
+
+.chat-item.stock-out:hover {
+    background-color: #ffe6e6;
+}
+
+.chat-item.stock-low:hover {
+    background-color: #fff8e1;
+}
+
+.chat-item.stock-ok:hover {
+    background-color: #e8f5e8;
+}

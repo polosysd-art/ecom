@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.75">
+    <title>Shopping Cart - Ecommerce Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="sidebar-fix.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" style="z-index: 9999;">
+        <div class="container-fluid">
+            <button class="btn text-white me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a class="navbar-brand mx-auto" href="#">
+                <img class="store-logo" id="store-logo" alt="Store Logo" style="max-height: 40px; display: none;">
+                <span class="top-bar-title fw-bold"></span>
+            </a>
+            <div class="d-flex">
+                <button class="btn text-white me-2 search-btn"><i class="fas fa-search"></i></button>
+                <button class="btn text-white d-flex align-items-center cart-btn">
+                    <span class="badge bg-danger me-2" id="cart-count">0</span>
+                    <i class="fas fa-shopping-cart"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- New Sidebar -->
+    <div class="offcanvas offcanvas-start bg-white" tabindex="-1" id="sidebar" style="width: 300px; top: 56px;">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title">Menu</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <nav class="nav flex-column">
+                <a class="nav-link d-flex align-items-center py-3 px-4" href="index.html">
+                    <i class="fas fa-home me-3"></i>Home
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4" href="shopping-cart.html">
+                    <i class="fas fa-shopping-cart me-3"></i>Cart
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 auth-only" href="myorders.html">
+                    <i class="fas fa-box me-3"></i>Orders
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 auth-only" href="profile.html">
+                    <i class="fas fa-user me-3"></i>Profile
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 guest-only" href="login.html">
+                    <i class="fas fa-sign-in-alt me-3"></i>Login
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 admin-only" href="dashboard.html">
+                    <i class="fas fa-cog me-3"></i>Admin
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 text-danger auth-only" href="#" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt me-3"></i>Logout
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container-fluid" style="margin-top: 56px;">
+        <div class="row g-4 p-4">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0" id="cart-heading">Shopping Cart</h4>
+                    </div>
+                    <div class="card-body" id="cart-items">
+                        <!-- Cart items loaded here -->
+                    </div>
+                    <div class="card-footer" id="cart-total">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Total: <span id="currency-symbol">$</span><span id="total-amount">0.00</span></h5>
+                            <button id="checkout-btn" class="btn btn-primary">Proceed to Checkout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checkout Form -->
+            <div class="col-lg-4" id="checkout-form" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Checkout</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <strong>Delivery to:</strong> <span id="customer-info"></span>
+                        </div>
+                        
+                        <form id="order-form">
+                            <div class="mb-3">
+                                <label for="address-select" class="form-label">Delivery Address</label>
+                                <select id="address-select" class="form-select" required>
+                                    <option value="">Select Address</option>
+                                    <option value="new">+ Add New Address</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3" id="address-input" style="display:none;">
+                                <textarea id="customer-address" class="form-control" placeholder="Enter new address" rows="3"></textarea>
+                                <button type="button" id="edit-address" class="btn btn-sm btn-outline-primary mt-2" style="display:none;">Edit Address</button>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-success w-100">Place Order</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="navigation.js"></script>
+    <script src="currency.js"></script>
+    <script>
+        // Simple cart display
+        async function displayCart() {
+            await loadCurrency();
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartItems = document.getElementById('cart-items');
+            const totalAmount = document.getElementById('total-amount');
+            const cartCount = document.getElementById('cart-count');
+            
+            console.log('Cart:', cart);
+            
+            if (cartCount) {
+                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+                cartCount.textContent = totalItems;
+                cartCount.style.display = totalItems > 0 ? 'inline' : 'none';
+            }
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<div class="text-center py-5"><p class="mb-3">Your cart is empty.</p><button onclick="window.location.href=\'index.html\'" class="btn btn-outline-primary">Continue Shopping</button></div>';
+                document.getElementById('cart-total').style.display = 'none';
+                document.getElementById('checkout-form').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('cart-heading').style.display = 'block';
+            document.getElementById('cart-total').style.display = 'block';
+            
+            cartItems.innerHTML = cart.map(item => {
+                const unitPrice = item.originalPrice || item.price;
+                const unitDiscount = item.discount || 0;
+                const vatPercent = item.vatPercent || 15;
+                
+                const priceAfterDiscount = unitPrice - unitDiscount;
+                const subtotal = priceAfterDiscount * item.quantity;
+                
+                // Sales price includes VAT
+                const grossAmount = subtotal;
+                const vatAmount = grossAmount - (grossAmount / (1 + vatPercent / 100));
+                const netAmount = grossAmount - vatAmount;
+                const totalWithVat = grossAmount;
+                
+                return `
+                <div class="border-bottom py-3">
+                    <div class="d-flex align-items-start">
+                        <img src="${item.image || 'https://via.placeholder.com/80x80'}" alt="${item.name}" class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-2">${item.name}</h6>
+                            <div class="small">
+                                <div class="mb-1"><strong>${(item.unit || 'pcs').toUpperCase()}</strong> | <strong>${formatPrice(unitPrice)}</strong> | Discount: <strong class="text-danger">${formatPrice(unitDiscount)}</strong> | Rate Incl VAT: <strong>${formatPrice(priceAfterDiscount)}</strong> | VAT ${vatPercent}%: <strong>${formatPrice(vatAmount * item.quantity)}</strong> | Net: <strong>${formatPrice(netAmount)}</strong></div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="d-flex align-items-center mb-2">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="changeQuantity('${item.id}', -1)">-</button>
+                                <span class="mx-2">${item.quantity}</span>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="changeQuantity('${item.id}', 1)">+</button>
+                            </div>
+                            <button class="btn btn-sm btn-link text-danger p-0" onclick="removeItem('${item.id}')">Remove</button>
+                        </div>
+                    </div>
+                    <div class="text-end mt-2">
+                        <div class="fw-bold h6">Total with VAT: ${formatPrice(totalWithVat)}</div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+            
+            const total = cart.reduce((sum, item) => {
+                const unitPrice = item.originalPrice || item.price;
+                const unitDiscount = item.discount || 0;
+                const priceAfterDiscount = unitPrice - unitDiscount;
+                const subtotal = priceAfterDiscount * item.quantity;
+                return sum + subtotal;
+            }, 0);
+            totalAmount.textContent = total.toFixed(2);
+            
+            const currencySymbol = document.getElementById('currency-symbol');
+            if (currencySymbol) {
+                currencySymbol.textContent = getCurrentCurrency();
+            }
+        }
+        
+        // Cart management functions
+        function changeQuantity(productId, change) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const item = cart.find(item => item.id === productId);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    cart = cart.filter(item => item.id !== productId);
+                }
+                localStorage.setItem('cart', JSON.stringify(cart));
+                displayCart();
+                updateCartCount();
+            }
+        }
+        
+        function removeItem(productId) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart = cart.filter(item => item.id !== productId);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+            updateCartCount();
+        }
+        
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartCount = document.getElementById('cart-count');
+            if (cartCount) {
+                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+                cartCount.textContent = totalItems;
+                cartCount.style.display = totalItems > 0 ? 'inline' : 'none';
+            }
+        }
+        
+        window.changeQuantity = changeQuantity;
+        window.removeItem = removeItem;
+        
+        // Address management
+        async function loadUserProfile() {
+            try {
+                const { db, auth } = await import('./firebase-config.js');
+                const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                if (auth.currentUser) {
+                    const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        userData.email = auth.currentUser.email;
+                        return userData;
+                    }
+                }
+            } catch (error) {
+                console.log('Firebase failed:', error);
+            }
+            
+            return {};
+        }
+        
+        async function saveUserProfile(profile) {
+            try {
+                const { db, auth } = await import('./firebase-config.js');
+                const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                if (!auth.currentUser) return;
+                
+                await setDoc(doc(db, 'users', auth.currentUser.uid), profile, { merge: true });
+            } catch (error) {
+                console.error('Error saving profile:', error);
+            }
+        }
+        
+        let userProfile = {};
+        
+        // Load addresses into dropdown
+        async function loadAddresses() {
+            try {
+                userProfile = await loadUserProfile();
+                console.log('Loaded user profile:', userProfile);
+            } catch (error) {
+                console.log('Failed to load profile, using empty profile:', error);
+                userProfile = {};
+            }
+            
+            const select = document.getElementById('address-select');
+            
+            // Clear existing options except default ones
+            select.innerHTML = '<option value="">Select Address</option><option value="new">+ Add New Address</option>';
+            
+            // Add profile address if exists
+            if (userProfile && userProfile.address) {
+                const option = document.createElement('option');
+                option.value = 'profile';
+                option.textContent = `Profile: ${userProfile.address.length > 50 ? userProfile.address.substring(0, 50) + '...' : userProfile.address}`;
+                select.insertBefore(option, select.lastElementChild);
+            }
+            
+            // Add saved addresses if exist
+            if (userProfile && userProfile.addresses && Array.isArray(userProfile.addresses)) {
+                userProfile.addresses.forEach((addr, index) => {
+                    const option = document.createElement('option');
+                    option.value = `saved-${index}`;
+                    option.textContent = `Saved: ${addr.length > 50 ? addr.substring(0, 50) + '...' : addr}`;
+                    select.insertBefore(option, select.lastElementChild);
+                });
+            }
+        }
+        
+        // Checkout functionality
+        document.addEventListener('click', async (e) => {
+            if (e.target.id === 'checkout-btn') {
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                if (cart.length === 0) {
+                    alert('Your cart is empty');
+                    return;
+                }
+                
+                try {
+                    await loadAddresses();
+                    
+                    // Display customer info
+                    const customerInfo = `${userProfile.name || 'User'} (${userProfile.email || 'No email'}) - ${userProfile.phone || 'No phone'}`;
+                    document.getElementById('customer-info').textContent = customerInfo;
+                } catch (error) {
+                    console.log('Profile loading failed:', error);
+                    document.getElementById('customer-info').textContent = 'Guest User';
+                }
+                
+                document.getElementById('checkout-form').style.display = 'block';
+                e.target.style.display = 'none';
+            }
+            
+            if (e.target.id === 'edit-address') {
+                const addressField = document.getElementById('customer-address');
+                addressField.style.display = 'block';
+                addressField.readOnly = false;
+                e.target.textContent = 'Save Changes';
+                e.target.id = 'save-address-changes';
+            }
+            
+            if (e.target.id === 'save-address-changes') {
+                const select = document.getElementById('address-select');
+                const newAddress = document.getElementById('customer-address').value;
+                
+                if (select.value === 'profile') {
+                    userProfile.address = newAddress;
+                } else if (select.value.startsWith('saved-')) {
+                    const index = parseInt(select.value.split('-')[1]);
+                    userProfile.addresses[index] = newAddress;
+                }
+                
+                await saveUserProfile(userProfile);
+                await loadAddresses();
+                
+                document.getElementById('customer-address').style.display = 'none';
+                e.target.textContent = 'Edit Address';
+                e.target.id = 'edit-address';
+                e.target.style.display = 'none';
+            }
+        });
+        
+        // Address selection change
+        document.addEventListener('change', (e) => {
+            if (e.target.id === 'address-select') {
+                const addressField = document.getElementById('customer-address');
+                const editBtn = document.getElementById('edit-address');
+                
+                const addressInput = document.getElementById('address-input');
+                
+                if (e.target.value === 'new') {
+                    addressInput.style.display = 'block';
+                    addressField.value = '';
+                    addressField.readOnly = false;
+                    editBtn.style.display = 'none';
+                } else if (e.target.value === 'profile') {
+                    addressInput.style.display = 'none';
+                    editBtn.style.display = 'block';
+                } else if (e.target.value.startsWith('saved-')) {
+                    addressInput.style.display = 'none';
+                    editBtn.style.display = 'block';
+                } else {
+                    addressInput.style.display = 'none';
+                    editBtn.style.display = 'none';
+                }
+            }
+        });
+        
+        document.addEventListener('submit', async (e) => {
+            if (e.target.id === 'order-form') {
+                e.preventDefault();
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                
+                const select = document.getElementById('address-select');
+                let selectedAddress = '';
+                
+                if (select.value === 'profile') {
+                    selectedAddress = userProfile.address;
+                } else if (select.value.startsWith('saved-')) {
+                    const index = parseInt(select.value.split('-')[1]);
+                    selectedAddress = userProfile.addresses[index];
+                } else if (select.value === 'new') {
+                    selectedAddress = document.getElementById('customer-address').value;
+                    
+                    // Save new address to profile
+                    if (!userProfile.addresses) userProfile.addresses = [];
+                    if (!userProfile.addresses.includes(selectedAddress)) {
+                        userProfile.addresses.push(selectedAddress);
+                        await saveUserProfile(userProfile);
+                    }
+                }
+                
+                try {
+                    const { db, auth } = await import('./firebase-config.js');
+                    const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                    
+                    const orderData = {
+                        items: cart,
+                        total: total,
+                        customerInfo: {
+                            name: userProfile.name || 'Guest User',
+                            email: userProfile.email || auth.currentUser?.email || 'guest@example.com',
+                            phone: userProfile.phone || 'Not provided',
+                            address: selectedAddress
+                        },
+                        userId: auth.currentUser ? auth.currentUser.uid : 'guest',
+                        status: 'pending',
+                        orderDate: new Date().toISOString(),
+                        createdAt: serverTimestamp()
+                    };
+                    
+                    const { doc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                    
+                    const docRef = await addDoc(collection(db, 'orders'), orderData);
+                    console.log('Order saved, now updating stock...');
+                    
+                    // Update product stock - simple decrement
+                    console.log('Starting stock updates for', cart.length, 'items');
+                    
+                    for (const item of cart) {
+                        console.log('Processing item:', item);
+                        
+                        if (!item.id) {
+                            console.error('Item missing ID:', item);
+                            continue;
+                        }
+                        
+                        try {
+                            const productRef = doc(db, 'products', item.id);
+                            console.log('Getting product document for ID:', item.id);
+                            
+                            const productDoc = await getDoc(productRef);
+                            
+                            if (productDoc.exists()) {
+                                const currentData = productDoc.data();
+                                const currentStock = parseInt(currentData.stock) || 0;
+                                const orderQuantity = parseInt(item.quantity) || 0;
+                                const newStock = Math.max(0, currentStock - orderQuantity);
+                                
+                                console.log(`Product ${item.id}: Current stock: ${currentStock}, Ordered: ${orderQuantity}, New stock: ${newStock}`);
+                                
+                                await updateDoc(productRef, { stock: newStock });
+                                console.log(`Stock updated for ${item.id}: ${currentStock} -> ${newStock}`);
+                            } else {
+                                console.error('Product document not found for ID:', item.id);
+                            }
+                        } catch (error) {
+                            console.error('Failed to update stock for product:', item.id, error);
+                        }
+                    }
+                    
+                    console.log('Stock updates completed');
+                    
+                    localStorage.removeItem('cart');
+                    
+                    // Show success notification
+                    const notification = document.createElement('div');
+                    notification.className = 'alert alert-success position-fixed top-50 start-50 translate-middle';
+                    notification.style.zIndex = '10000';
+                    notification.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <h5>Order Placed Successfully!</h5>
+                            <p class="mb-0">Order ID: ${docRef.id}</p>
+                        </div>
+                    `;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 3000);
+                } catch (error) {
+                    console.error('Error saving order:', error);
+                    alert('Error placing order. Please try again.');
+                }
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', displayCart);
+    </script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - Ecommerce Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="sidebar-fix.css" rel="stylesheet">
+    <link rel="stylesheet" href="admin-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" style="z-index: 9999;">
+        <div class="container-fluid">
+            <button class="btn text-white me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a class="navbar-brand mx-auto" href="#">
+                <img class="store-logo" id="store-logo" alt="Store Logo" style="max-height: 40px; display: none;">
+                <span class="top-bar-title fw-bold"></span>
+            </a>
+            <div class="d-flex">
+                <button class="btn text-white me-2 search-btn"><i class="fas fa-search"></i></button>
+                <button class="btn text-white d-flex align-items-center cart-btn">
+                    <span class="badge bg-danger me-2 cart-count" id="cart-count" style="display: none;">0</span>
+                    <i class="fas fa-shopping-cart"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- New Sidebar -->
+    <div class="offcanvas offcanvas-start bg-white" tabindex="-1" id="sidebar" style="width: 300px; top: 56px;">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title">Menu</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <nav class="nav flex-column">
+                <a class="nav-link d-flex align-items-center py-3 px-4" href="index.html">
+                    <i class="fas fa-home me-3"></i>Home
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4" href="shopping-cart.html">
+                    <i class="fas fa-shopping-cart me-3"></i>Cart
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 auth-only" href="myorders.html">
+                    <i class="fas fa-box me-3"></i>Orders
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 auth-only" href="profile.html">
+                    <i class="fas fa-user me-3"></i>Profile
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 guest-only" href="login.html">
+                    <i class="fas fa-sign-in-alt me-3"></i>Login
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 admin-only" href="dashboard.html">
+                    <i class="fas fa-cog me-3"></i>Admin
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 text-danger auth-only" href="#" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt me-3"></i>Logout
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container-fluid" style="margin-top: 56px; padding: 20px;">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">My Orders</h2>
+                <div id="orders-list">
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="navigation.js"></script>
+    <script>
+        // Load orders
+        async function loadOrders() {
+            try {
+                const { db, auth } = await import('./firebase-config.js');
+                const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                const ordersQuery = query(
+                    collection(db, 'orders'),
+                    where('userId', '==', auth.currentUser.uid)
+                );
+                
+                const querySnapshot = await getDocs(ordersQuery);
+                
+                if (querySnapshot.empty) {
+                    document.getElementById('orders-list').innerHTML = `
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                            <h4>No orders yet</h4>
+                            <p class="text-muted">Start shopping to see your orders here</p>
+                            <button class="btn btn-primary" onclick="window.location.href='index.html'">Start Shopping</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const orders = [];
+                querySnapshot.forEach((doc) => {
+                    orders.push({ id: doc.id, ...doc.data() });
+                });
+                
+                displayOrders(orders);
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('orders-list').innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error loading orders. Please try again later.
+                    </div>
+                `;
+            }
+        }
+        
+        // Cancel order function
+        window.cancelOrder = async function(orderId) {
+            if (!confirm('Are you sure you want to cancel this order?')) {
+                return;
+            }
+            
+            try {
+                const { db } = await import('./firebase-config.js');
+                const { doc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                const orderDoc = await getDoc(doc(db, 'orders', orderId));
+                const orderData = orderDoc.data();
+                
+                // Restore stock for each item
+                for (const item of orderData.items) {
+                    if (!item.id) continue;
+                    
+                    try {
+                        const productRef = doc(db, 'products', item.id);
+                        const productDoc = await getDoc(productRef);
+                        
+                        if (productDoc.exists()) {
+                            const currentStock = parseInt(productDoc.data().stock) || 0;
+                            const restoreQuantity = parseInt(item.quantity) || 0;
+                            const restoredStock = currentStock + restoreQuantity;
+                            
+                            await updateDoc(productRef, { stock: restoredStock });
+                        }
+                    } catch (error) {
+                        console.error('Error restoring stock for product:', item.id, error);
+                    }
+                }
+                
+                await updateDoc(doc(db, 'orders', orderId), {
+                    status: 'cancelled',
+                    cancelledAt: new Date().toISOString()
+                });
+                
+                alert('Order cancelled successfully!');
+                location.reload();
+            } catch (error) {
+                console.error('Error cancelling order:', error);
+                alert('Error cancelling order. Please try again.');
+            }
+        }
+        
+        // Display orders
+        function displayOrders(orders) {
+            const container = document.getElementById('orders-list');
+            
+            container.innerHTML = orders.map(order => `
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">Order #${order.orderNumber || order.id.substring(0, 8)}</h5>
+                            <small class="text-muted">${new Date(order.orderDate).toLocaleDateString()}</small>
+                        </div>
+                        <div class="text-end">
+                            <h5 class="mb-1 text-success">₹${order.total.toFixed(2)}</h5>
+                            <span class="badge ${getStatusBadgeClass(order.status)}">${order.status || 'Pending'}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            ${order.items.map(item => `
+                                <div class="col-12 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <img src="${item.image || 'https://via.placeholder.com/60x60'}" alt="${item.name}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">${item.name}</h6>
+                                            <small class="text-muted">Qty: ${item.quantity} × ₹${item.price.toFixed(2)}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <strong>₹${(item.price * item.quantity).toFixed(2)}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6>Delivery Address:</h6>
+                                <p class="text-muted mb-0">${order.customerInfo.address}</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                ${(order.status === 'pending' || !order.status) ? `<button class="btn btn-outline-danger btn-sm" onclick="cancelOrder('${order.id}')">Cancel Order</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'cancelled': return 'bg-danger';
+                case 'delivered': return 'bg-success';
+                case 'shipped': return 'bg-info';
+                case 'processing': return 'bg-warning';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const { auth } = await import('./firebase-config.js');
+                const { onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
+                
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        loadOrders();
+                    } else {
+                        document.getElementById('orders-list').innerHTML = `
+                            <div class="text-center py-5">
+                                <i class="fas fa-user-lock fa-3x text-muted mb-3"></i>
+                                <h4>Please login to view your orders</h4>
+                                <a href="login.html" class="btn btn-primary">Login</a>
+                            </div>
+                        `;
+                    }
+                });
+            } catch (error) {
+                console.error('Auth setup failed:', error);
+                loadOrders();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 // Gateway Authentication - DO NOT EDIT
-import { auth, db } from './frontend/config/firebase-config.js';
+import { auth, db } from './firebase-config.js';
 import { 
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 

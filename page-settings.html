@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.75, user-scalable=no">
+    <title>Admin Settings - Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body class="admin-page">
+    <!-- Top Bar -->
+    <nav class="navbar navbar-dark bg-dark top-bar">
+        <div class="container-fluid">
+            <button class="btn text-white menu-toggle"><i class="fas fa-bars"></i></button>
+            <div class="d-flex align-items-center">
+                <img class="store-logo me-2" id="store-logo" alt="Store Logo" style="max-height: 40px; display: none;">
+                <span class="navbar-brand mb-0 h1">Admin Settings</span>
+            </div>
+            <div class="d-flex">
+                <button class="btn text-white me-2" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
+                <button class="btn text-white" id="admin-logout"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar shadow-sm">
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item d-block p-3 border-bottom">Dashboard</a>
+            <a href="orders.html" class="nav-item d-block p-3 border-bottom">Orders</a>
+            <a href="crm.html" class="nav-item d-block p-3 border-bottom">CRM</a>
+            <a href="gallery.html" class="nav-item d-block p-3 border-bottom">Gallery</a>
+            <a href="products.html" class="nav-item d-block p-3 border-bottom">Product Studio</a>
+            <a href="product-settings.html" class="nav-item d-block p-3 border-bottom">Product Settings</a>
+            <a href="page-settings.html" class="nav-item d-block p-3 border-bottom active">Admin Settings</a>
+            <a href="index.html" class="nav-item d-block p-3">View Store</a>
+        </nav>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="messenger-container">
+            <!-- Left Side - Settings List -->
+            <div class="chat-list">
+                <div class="chat-header">
+                    <h3>Admin Settings</h3>
+                    <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">Manage your store settings</p>
+                </div>
+                
+                <div class="chat-items">
+                    <div class="chat-item" onclick="selectSetting('home-page')" data-setting="home-page">
+                        <div class="chat-avatar" style="background: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name">Home Page</div>
+                            <div class="chat-preview">Hero section and main content</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-item" onclick="selectSetting('products-page')" data-setting="products-page">
+                        <div class="chat-avatar" style="background: #e74c3c; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name">Products Page</div>
+                            <div class="chat-preview">Product catalog settings</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-item" onclick="selectSetting('cart-page')" data-setting="cart-page">
+                        <div class="chat-avatar" style="background: #f39c12; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name">Cart Page</div>
+                            <div class="chat-preview">Shopping cart messages</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-item" onclick="selectSetting('login-page')" data-setting="login-page">
+                        <div class="chat-avatar" style="background: #9b59b6; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name">Login Page</div>
+                            <div class="chat-preview">Login text and messages</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-item" onclick="selectSetting('order-settings')" data-setting="order-settings">
+                        <div class="chat-avatar" style="background: #27ae60; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name">Order Settings</div>
+                            <div class="chat-preview">Order number configuration</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-item" onclick="selectSetting('order-management')" data-setting="order-management">
+                        <div class="chat-avatar" style="background: #e67e22; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name">Order Management</div>
+                            <div class="chat-preview">Delete orders and restore stock</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-item" onclick="selectSetting('currency-settings')" data-setting="currency-settings">
+                        <div class="chat-avatar" style="background: #8e44ad; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name">Currency Settings</div>
+                            <div class="chat-preview">Set store currency</div>
+                        </div>
+                    </div>
+                    
+
+                </div>
+            </div>
+
+            <!-- Right Side - Settings Detail -->
+            <div class="chat-detail">
+                <div class="no-selection" id="no-setting-selected">
+                    <i class="fas fa-cog"></i>
+                    <h3>Select a Setting</h3>
+                    <p>Choose a setting from the list to configure</p>
+                </div>
+                
+                <div class="order-detail-view" id="setting-detail-view" style="display: none;">
+                    <div class="detail-content">
+                        <div id="setting-content">
+                            <!-- Setting forms loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Font Selection Modal -->
+    <div id="font-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Font Family</h3>
+                <button class="modal-close" onclick="closeFontModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="font-options">
+                    <div class="font-option" onclick="selectFont('Arial, sans-serif')" style="font-family: Arial, sans-serif;">Arial</div>
+                    <div class="font-option" onclick="selectFont('Helvetica, sans-serif')" style="font-family: Helvetica, sans-serif;">Helvetica</div>
+                    <div class="font-option" onclick="selectFont('Times New Roman, serif')" style="font-family: 'Times New Roman', serif;">Times New Roman</div>
+                    <div class="font-option" onclick="selectFont('Georgia, serif')" style="font-family: 'Georgia', serif;">Georgia</div>
+                    <div class="font-option" onclick="selectFont('Verdana, sans-serif')" style="font-family: 'Verdana', sans-serif;">Verdana</div>
+                    <div class="font-option" onclick="selectFont('Tahoma, sans-serif')" style="font-family: 'Tahoma', sans-serif;">Tahoma</div>
+                    <div class="font-option" onclick="selectFont('Trebuchet MS, sans-serif')" style="font-family: 'Trebuchet MS', sans-serif;">Trebuchet MS</div>
+                    <div class="font-option" onclick="selectFont('Courier New, monospace')" style="font-family: 'Courier New', monospace;">Courier New</div>
+                    <div class="font-option" onclick="selectFont('Monaco, monospace')" style="font-family: 'Monaco', monospace;">Monaco</div>
+                    <div class="font-option" onclick="selectFont('Lucida Console, monospace')" style="font-family: 'Lucida Console', monospace;">Lucida Console</div>
+                    <div class="font-option" onclick="selectFont('Impact, sans-serif')" style="font-family: 'Impact', sans-serif;">Impact</div>
+                    <div class="font-option" onclick="selectFont('Comic Sans MS, cursive')" style="font-family: 'Comic Sans MS', cursive;">Comic Sans MS</div>
+                    <div class="font-option" onclick="selectFont('Palatino, serif')" style="font-family: 'Palatino', serif;">Palatino</div>
+                    <div class="font-option" onclick="selectFont('Garamond, serif')" style="font-family: 'Garamond', serif;">Garamond</div>
+                    <div class="font-option" onclick="selectFont('Book Antiqua, serif')" style="font-family: 'Book Antiqua', serif;">Book Antiqua</div>
+                    <div class="font-option" onclick="selectFont('Calibri, sans-serif')" style="font-family: 'Calibri', sans-serif;">Calibri</div>
+                    <div class="font-option" onclick="selectFont('Cambria, serif')" style="font-family: 'Cambria', serif;">Cambria</div>
+                    <div class="font-option" onclick="selectFont('Franklin Gothic Medium, sans-serif')" style="font-family: 'Franklin Gothic Medium', sans-serif;">Franklin Gothic Medium</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Setting Modal -->
+    <div id="mobile-setting-modal" class="mobile-modal" style="display: none;">
+        <div class="mobile-modal-header">
+            <button class="mobile-back-btn" onclick="closeMobileSettingModal()"><i class="fas fa-arrow-left"></i></button>
+            <h3 id="mobile-setting-title">Setting Details</h3>
+        </div>
+        <div class="mobile-modal-content" id="mobile-setting-content">
+            <!-- Mobile setting content loaded here -->
+        </div>
+        <div class="mobile-modal-footer">
+            <button class="btn-save" onclick="saveCurrentSetting()"><i class="fas fa-save"></i> Save</button>
+        </div>
+    </div>
+
+    <!-- Order Selection Modal -->
+    <div id="order-selection-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px; max-height: 80vh;">
+            <div class="modal-header">
+                <h3>Select Orders to Delete</h3>
+                <button class="modal-close" onclick="closeOrderSelectionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="order-filter" placeholder="Search orders..." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px;" oninput="filterOrderList()">
+                <div id="orders-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
+                    Loading orders...
+                </div>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button type="button" onclick="selectAllOrders()" class="btn-chat">Select All</button>
+                    <button type="button" onclick="clearAllOrders()" class="btn-chat">Clear All</button>
+                    <button type="button" onclick="confirmOrderSelection()" class="btn" style="margin-left: auto;">Confirm Selection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="navigation.js"></script>
+    <script type="module" src="auth-check.js"></script>
+    <script>
+        // Select setting function
+        window.selectSetting = function(settingType) {
+            // Remove active class from all items
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to selected item
+            document.querySelector(`[data-setting="${settingType}"]`).classList.add('active');
+            
+            // Special handling for order management
+            if (settingType === 'order-management') {
+                if (window.innerWidth <= 768) {
+                    // Mobile: Show full screen order management
+                    showMobileOrderManagement();
+                } else {
+                    // Desktop: Show in detail panel
+                    showDesktopOrderManagement();
+                }
+                return;
+            }
+            
+            if (window.innerWidth <= 768) {
+                // Mobile: Show modal
+                showMobileSettingModal(settingType);
+                return;
+            }
+            
+            // Desktop: Show setting detail view
+            document.getElementById('no-setting-selected').style.display = 'none';
+            document.getElementById('setting-detail-view').style.display = 'flex';
+            
+            // Load content
+            loadSettingContent(settingType);
+        }
+        
+        // Show mobile setting modal
+        function showMobileSettingModal(settingType) {
+            const settingNames = {
+                'home-page': 'Home Page',
+                'products-page': 'Products Page', 
+                'cart-page': 'Cart Page',
+                'login-page': 'Login Page',
+                'order-settings': 'Order Settings',
+                'order-management': 'Order Management',
+                'currency-settings': 'Currency Settings'
+            };
+            
+            document.getElementById('mobile-setting-title').textContent = settingNames[settingType] || 'Settings';
+            
+            // Load content into mobile modal
+            loadMobileSettingContent(settingType);
+            
+            document.getElementById('mobile-setting-modal').style.display = 'flex';
+        }
+        
+        // Close mobile setting modal
+        window.closeMobileSettingModal = function() {
+            document.getElementById('mobile-setting-modal').style.display = 'none';
+            
+            // Clear active states
+            document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
+        }
+        
+        // Load mobile setting content
+        async function loadMobileSettingContent(settingType) {
+            const content = document.getElementById('mobile-setting-content');
+            
+            switch(settingType) {
+                case 'home-page':
+                    content.innerHTML = `
+                        <div class="form-section">
+                            <h3>Hero Section</h3>
+                            <div class="settings-group">
+                                <label for="mobile-hero-title">Hero Title</label>
+                                <input type="text" id="mobile-hero-title" placeholder="Welcome to Our Store">
+                            </div>
+                            <div class="settings-group">
+                                <label for="mobile-hero-subtitle">Hero Subtitle</label>
+                                <input type="text" id="mobile-hero-subtitle" placeholder="Find amazing products at great prices">
+                            </div>
+                            <div class="settings-group">
+                                <label for="mobile-animated-title">Animated Header Text</label>
+                                <input type="text" id="mobile-animated-title" placeholder="CYBEE CART">
+                            </div>
+                            <div class="settings-group">
+                                <label for="mobile-hero-products">Hero Products</label>
+                                <input type="text" id="mobile-hero-products" placeholder="Select products for hero slider" readonly onclick="openProductSelectionModal()" style="cursor: pointer;">
+                            </div>
+                        </div>
+                    `;
+                    await loadMobileSettingsData();
+                    break;
+                case 'products-page':
+                    content.innerHTML = `
+                        <div class="form-section">
+                            <h3>Products Page</h3>
+                            <div class="settings-group">
+                                <label for="mobile-products-title">Page Title</label>
+                                <input type="text" id="mobile-products-title" placeholder="Our Products">
+                            </div>
+                            <div class="settings-group">
+                                <label for="mobile-products-subtitle">Page Subtitle</label>
+                                <input type="text" id="mobile-products-subtitle" placeholder="Browse our amazing collection">
+                            </div>
+                        </div>
+                    `;
+                    await loadMobileSettingsData();
+                    break;
+                case 'order-settings':
+                    content.innerHTML = `
+                        <div class="form-section">
+                            <h3>Order Configuration</h3>
+                            <div class="settings-group">
+                                <label for="mobile-order-prefix">Order Number Prefix</label>
+                                <input type="text" id="mobile-order-prefix" placeholder="ORD" maxlength="10">
+                            </div>
+                        </div>
+                    `;
+                    await loadMobileSettingsData();
+                    break;
+                case 'order-management':
+                    content.innerHTML = `
+                        <div class="form-section">
+                            <h3>Delete Orders</h3>
+                            <div class="settings-group">
+                                <button type="button" class="btn-chat-mobile" onclick="openMobileOrderSelectionModal()" style="width: 100%; padding: 15px;">Select Orders to Delete</button>
+                                <div id="mobile-selected-orders-display" style="margin-top: 10px; font-size: 14px; color: #666;">No orders selected</div>
+                                <button type="button" id="mobile-delete-order-btn" class="btn-danger" style="margin-top: 10px; width: 100%;">Delete Selected Orders</button>
+                            </div>
+                        </div>
+                    `;
+                    setupMobileDeleteOrderButton();
+                    break;
+                case 'currency-settings':
+                    content.innerHTML = `
+                        <div class="form-section">
+                            <h3>Currency Settings</h3>
+                            <div class="settings-group">
+                                <label for="mobile-currency">Currency</label>
+                                <select id="mobile-currency" style="width: 100%;">
+                                    <option value="₹">Indian Rupee (₹)</option>
+                                    <option value="﷼">Saudi Riyal (﷼)</option>
+                                    <option value="$">US Dollar ($)</option>
+                                    <option value="€">Euro (€)</option>
+                                    <option value="£">British Pound (£)</option>
+                                </select>
+                            </div>
+                        </div>
+                    `;
+                    await loadMobileSettingsData();
+                    break;
+            }
+        }
+        
+        // Load mobile settings data
+        async function loadMobileSettingsData() {
+            try {
+                const { db } = await import('./firebase-config.js');
+                const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                const settingsDoc = await getDoc(doc(db, 'settings', 'pages'));
+                if (settingsDoc.exists()) {
+                    const data = settingsDoc.data();
+                    
+                    if (document.getElementById('mobile-hero-title')) {
+                        document.getElementById('mobile-hero-title').value = data.heroTitle || '';
+                    }
+                    if (document.getElementById('mobile-hero-subtitle')) {
+                        document.getElementById('mobile-hero-subtitle').value = data.heroSubtitle || '';
+                    }
+                    if (document.getElementById('mobile-animated-title')) {
+                        document.getElementById('mobile-animated-title').value = data.animatedTitle || 'CYBEE CART';
+                    }
+                    if (document.getElementById('mobile-products-title')) {
+                        document.getElementById('mobile-products-title').value = data.productsTitle || '';
+                    }
+                    if (document.getElementById('mobile-products-subtitle')) {
+                        document.getElementById('mobile-products-subtitle').value = data.productsSubtitle || '';
+                    }
+                    if (document.getElementById('mobile-order-prefix')) {
+                        document.getElementById('mobile-order-prefix').value = data.orderPrefix || 'ORD';
+                    }
+                    if (document.getElementById('mobile-currency')) {
+                        document.getElementById('mobile-currency').value = data.currency || '₹';
+                    }
+                    if (document.getElementById('mobile-hero-products')) {
+                        const heroProducts = data.heroProducts || [];
+                        if (heroProducts.length > 0) {
+                            document.getElementById('mobile-hero-products').value = `${heroProducts.length} product(s) selected`;
+                            document.getElementById('mobile-hero-products').dataset.products = JSON.stringify(heroProducts);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading mobile settings:', error);
+            }
+        }
+        
+        // Load setting content
+        async function loadSettingContent(settingType) {
+            const content = document.getElementById('setting-content');
+            
+            switch(settingType) {
+                case 'home-page':
+                    content.innerHTML = `
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-home me-2"></i>Home Page Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="hero-title" class="form-label">Hero Title</label>
+                                        <input type="text" id="hero-title" class="form-control" placeholder="Welcome to Our Store">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="hero-subtitle" class="form-label">Hero Subtitle</label>
+                                        <input type="text" id="hero-subtitle" class="form-control" placeholder="Find amazing products at great prices">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="hero-image" class="form-label">Hero Image</label>
+                                    <input type="text" id="hero-image" class="form-control" placeholder="Select from gallery" readonly onclick="openGalleryModal()" style="cursor: pointer;">
+                                    <div id="hero-image-preview" class="mt-2" style="display: none;">
+                                        <img id="hero-preview-img" class="img-thumbnail" style="max-width: 200px; max-height: 100px;">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="animated-title" class="form-label">Animated Header Text</label>
+                                        <input type="text" id="animated-title" class="form-control" placeholder="CYBEE CART">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="header-font" class="form-label">Header Font Family</label>
+                                        <input type="text" id="header-font" class="form-control" placeholder="Arial, sans-serif" readonly onclick="openFontModal()" style="cursor: pointer;">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="hero-products" class="form-label">Hero Products</label>
+                                    <input type="text" id="hero-products" class="form-control" placeholder="Select products for hero slider" readonly onclick="openProductSelectionModal()" style="cursor: pointer;">
+                                    <div id="hero-products-preview" class="mt-2" style="display: none;">
+                                        <div id="selected-products-list"></div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" onclick="saveCurrentSetting()">
+                                    <i class="fas fa-save me-2"></i>Save Settings
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    await loadSettingsData();
+                    break;
+                case 'products-page':
+                    content.innerHTML = `
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-box me-2"></i>Products Page Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="products-title" class="form-label">Page Title</label>
+                                    <input type="text" id="products-title" class="form-control" placeholder="Our Products">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="products-subtitle" class="form-label">Page Subtitle</label>
+                                    <input type="text" id="products-subtitle" class="form-control" placeholder="Browse our amazing collection">
+                                </div>
+                                <button class="btn btn-primary" onclick="saveCurrentSetting()">
+                                    <i class="fas fa-save me-2"></i>Save Settings
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    await loadSettingsData();
+                    break;
+                case 'login-page':
+                    content.innerHTML = `
+                        <div class="form-section">
+                            <h3>Login Page Text</h3>
+                            <div class="settings-group" style="display: flex; gap: 10px;">
+                                <div style="flex: 1;">
+                                    <label for="topbar-logo-text">Topbar Logo Text</label>
+                                    <input type="text" id="topbar-logo-text" placeholder="Store Name" oninput="updateLivePreview()">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label>Font</label>
+                                    <select id="topbar-font" onchange="this.style.fontFamily=this.value; updateLivePreview()" style="width: 100%;">
+                                        <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial</option>
+                                        <option value="'Times New Roman', serif" style="font-family: 'Times New Roman', serif;">Times New Roman</option>
+                                        <option value="'Georgia', serif" style="font-family: 'Georgia', serif;">Georgia</option>
+                                        <option value="'Helvetica', sans-serif" style="font-family: 'Helvetica', sans-serif;">Helvetica</option>
+                                        <option value="'Verdana', sans-serif" style="font-family: 'Verdana', sans-serif;">Verdana</option>
+                                        <option value="'Impact', sans-serif" style="font-family: 'Impact', sans-serif;">Impact</option>
+                                        <option value="'Comic Sans MS', cursive" style="font-family: 'Comic Sans MS', cursive;">Comic Sans MS</option>
+                                        <option value="'Brush Script MT', cursive" style="font-family: 'Brush Script MT', cursive;">Brush Script MT</option>
+                                        <option value="'Courier New', monospace" style="font-family: 'Courier New', monospace;">Courier New</option>
+                                        <option value="'Trebuchet MS', sans-serif" style="font-family: 'Trebuchet MS', sans-serif;">Trebuchet MS</option>
+                                        <option value="'Tahoma', sans-serif" style="font-family: 'Tahoma', sans-serif;">Tahoma</option>
+                                        <option value="'Palatino', serif" style="font-family: 'Palatino', serif;">Palatino</option>
+                                        <option value="'Garamond', serif" style="font-family: 'Garamond', serif;">Garamond</option>
+                                        <option value="'Book Antiqua', serif" style="font-family: 'Book Antiqua', serif;">Book Antiqua</option>
+                                        <option value="'Calibri', sans-serif" style="font-family: 'Calibri', sans-serif;">Calibri</option>
+                                        <option value="'Cambria', serif" style="font-family: 'Cambria', serif;">Cambria</option>
+                                        <option value="'Franklin Gothic Medium', sans-serif" style="font-family: 'Franklin Gothic Medium', sans-serif;">Franklin Gothic</option>
+                                        <option value="'Lucida Console', monospace" style="font-family: 'Lucida Console', monospace;">Lucida Console</option>
+                                        <option value="'Monaco', monospace" style="font-family: 'Monaco', monospace;">Monaco</option>
+                                        <option value="'Papyrus', fantasy" style="font-family: 'Papyrus', fantasy;">Papyrus</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="settings-group" style="display: flex; gap: 10px;">
+                                <div style="flex: 1;">
+                                    <label for="welcome-text">Welcome Text</label>
+                                    <input type="text" id="welcome-text" placeholder="Welcome" oninput="updateLivePreview()">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label>Font</label>
+                                    <select id="welcome-font" onchange="this.style.fontFamily=this.value; updateLivePreview()" style="width: 100%;">
+                                        <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial</option>
+                                        <option value="'Times New Roman', serif" style="font-family: 'Times New Roman', serif;">Times New Roman</option>
+                                        <option value="'Georgia', serif" style="font-family: 'Georgia', serif;">Georgia</option>
+                                        <option value="'Helvetica', sans-serif" style="font-family: 'Helvetica', sans-serif;">Helvetica</option>
+                                        <option value="'Verdana', sans-serif" style="font-family: 'Verdana', sans-serif;">Verdana</option>
+                                        <option value="'Impact', sans-serif" style="font-family: 'Impact', sans-serif;">Impact</option>
+                                        <option value="'Comic Sans MS', cursive" style="font-family: 'Comic Sans MS', cursive;">Comic Sans MS</option>
+                                        <option value="'Brush Script MT', cursive" style="font-family: 'Brush Script MT', cursive;">Brush Script MT</option>
+                                        <option value="'Courier New', monospace" style="font-family: 'Courier New', monospace;">Courier New</option>
+                                        <option value="'Trebuchet MS', sans-serif" style="font-family: 'Trebuchet MS', sans-serif;">Trebuchet MS</option>
+                                        <option value="'Tahoma', sans-serif" style="font-family: 'Tahoma', sans-serif;">Tahoma</option>
+                                        <option value="'Palatino', serif" style="font-family: 'Palatino', serif;">Palatino</option>
+                                        <option value="'Garamond', serif" style="font-family: 'Garamond', serif;">Garamond</option>
+                                        <option value="'Book Antiqua', serif" style="font-family: 'Book Antiqua', serif;">Book Antiqua</option>
+                                        <option value="'Calibri', sans-serif" style="font-family: 'Calibri', sans-serif;">Calibri</option>
+                                        <option value="'Cambria', serif" style="font-family: 'Cambria', serif;">Cambria</option>
+                                        <option value="'Franklin Gothic Medium', sans-serif" style="font-family: 'Franklin Gothic Medium', sans-serif;">Franklin Gothic</option>
+                                        <option value="'Lucida Console', monospace" style="font-family: 'Lucida Console', monospace;">Lucida Console</option>
+                                        <option value="'Monaco', monospace" style="font-family: 'Monaco', monospace;">Monaco</option>
+                                        <option value="'Papyrus', fantasy" style="font-family: 'Papyrus', fantasy;">Papyrus</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="settings-group">
+                                <label for="login-subtitle">Login Subtitle</label>
+                                <input type="text" id="login-subtitle" placeholder="Login to your account" oninput="updateLivePreview()">
+                            </div>
+                            <div class="settings-group" style="display: flex; gap: 10px;">
+                                <div style="flex: 1;">
+                                    <label for="copyright-text">Copyright Text</label>
+                                    <input type="text" id="copyright-text" placeholder="© 2024 Your Company" oninput="updateLivePreview()">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label>Font</label>
+                                    <select id="copyright-font" onchange="this.style.fontFamily=this.value; updateLivePreview()" style="width: 100%;">
+                                        <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial</option>
+                                        <option value="'Times New Roman', serif" style="font-family: 'Times New Roman', serif;">Times New Roman</option>
+                                        <option value="'Georgia', serif" style="font-family: 'Georgia', serif;">Georgia</option>
+                                        <option value="'Helvetica', sans-serif" style="font-family: 'Helvetica', sans-serif;">Helvetica</option>
+                                        <option value="'Verdana', sans-serif" style="font-family: 'Verdana', sans-serif;">Verdana</option>
+                                        <option value="'Impact', sans-serif" style="font-family: 'Impact', sans-serif;">Impact</option>
+                                        <option value="'Comic Sans MS', cursive" style="font-family: 'Comic Sans MS', cursive;">Comic Sans MS</option>
+                                        <option value="'Brush Script MT', cursive" style="font-family: 'Brush Script MT', cursive;">Brush Script MT</option>
+                                        <option value="'Courier New', monospace" style="font-family: 'Courier New', monospace;">Courier New</option>
+                                        <option value="'Trebuchet MS', sans-serif" style="font-family: 'Trebuchet MS', sans-serif;">Trebuchet MS</option>
+                                        <option value="'Tahoma', sans-serif" style="font-family: 'Tahoma', sans-serif;">Tahoma</option>
+                                        <option value="'Palatino', serif" style="font-family: 'Palatino', serif;">Palatino</option>
+                                        <option value="'Garamond', serif" style="font-family: 'Garamond', serif;">Garamond</option>
+                                        <option value="'Book Antiqua', serif" style="font-family: 'Book Antiqua', serif;">Book Antiqua</option>
+                                        <option value="'Calibri', sans-serif" style="font-family: 'Calibri', sans-serif;">Calibri</option>
+                                        <option value="'Cambria', serif" style="font-family: 'Cambria', serif;">Cambria</option>
+                                        <option value="'Franklin Gothic Medium', sans-serif" style="font-family: 'Franklin Gothic Medium', sans-serif;">Franklin Gothic</option>
+                                        <option value="'Lucida Console', monospace" style="font-family: 'Lucida Console', monospace;">Lucida Console</option>
+                                        <option value="'Monaco', monospace" style="font-family: 'Monaco', monospace;">Monaco</option>
+                                        <option value="'Papyrus', fantasy" style="font-family: 'Papyrus', fantasy;">Papyrus</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="live-preview" style="margin: 20px 0; padding: 15px; background: #1a1a1a; border-radius: 8px; color: white;">
+                                <h4 style="margin: 0 0 10px 0; color: #ccc;">Live Preview:</h4>
+                                <div id="preview-topbar" style="font-size: 18px; margin-bottom: 10px;">Store Name</div>
+                                <div id="preview-welcome" style="font-size: 24px; margin-bottom: 10px;">Welcome</div>
+                                <div id="preview-subtitle" style="font-size: 14px; margin-bottom: 10px; color: #ccc;">Login to your account</div>
+                                <div id="preview-copyright" style="font-size: 12px; color: #999;">© 2024 Your Company</div>
+                            </div>
+
+                            <button class="btn-chat" onclick="saveCurrentSetting()"><i class="fas fa-save"></i> Save</button>
+                        </div>
+                    `;
+                    await loadSettingsData();
+                    break;
+                case 'order-settings':
+                    content.innerHTML = `
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Order Configuration</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="order-prefix" class="form-label">Order Number Prefix</label>
+                                    <input type="text" id="order-prefix" class="form-control" placeholder="ORD" maxlength="10">
+                                    <div class="form-text">Prefix for order numbers (e.g., ORD-001)</div>
+                                </div>
+                                <button class="btn btn-primary" onclick="saveCurrentSetting()">
+                                    <i class="fas fa-save me-2"></i>Save Settings
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    await loadSettingsData();
+                    break;
+                case 'order-management':
+                    content.innerHTML = `
+                        <div class="form-section">
+                            <h3>Delete Orders</h3>
+                            <div class="settings-group">
+                                <button type="button" class="btn-chat" onclick="openOrderSelectionModal()" style="width: 100%; padding: 12px;">Select Orders to Delete</button>
+                                <div id="selected-orders-display" style="margin-top: 10px; font-size: 14px; color: #666;">No orders selected</div>
+                                <button type="button" id="delete-order-btn" class="btn-danger" style="margin-top: 10px; width: 100%;">Delete Selected Orders</button>
+                            </div>
+                        </div>
+                    `;
+                    setupDeleteOrderButton();
+                    break;
+                case 'currency-settings':
+                    content.innerHTML = `
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-coins me-2"></i>Currency Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="currency" class="form-label">Store Currency</label>
+                                    <select id="currency" class="form-select">
+                                        <option value="₹">Indian Rupee (₹)</option>
+                                        <option value="﷼">Saudi Riyal (﷼)</option>
+                                        <option value="$">US Dollar ($)</option>
+                                        <option value="€">Euro (€)</option>
+                                        <option value="£">British Pound (£)</option>
+                                    </select>
+                                    <div class="form-text">This currency will be used throughout your store</div>
+                                </div>
+                                <button class="btn btn-primary" onclick="saveCurrentSetting()">
+                                    <i class="fas fa-save me-2"></i>Save Currency
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    await loadSettingsData();
+                    break;
+            }
+        }
+        
+        // Load settings data from database
+        async function loadSettingsData() {
+            try {
+                const { db } = await import('./firebase-config.js');
+                const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                const settingsDoc = await getDoc(doc(db, 'settings', 'pages'));
+                if (settingsDoc.exists()) {
+                    const data = settingsDoc.data();
+                    
+                    // Populate fields if they exist and mark as saved
+                    if (document.getElementById('hero-title')) {
+                        document.getElementById('hero-title').value = data.heroTitle || '';
+                        if (data.heroTitle) document.getElementById('hero-title').classList.add('saved');
+                    }
+                    if (document.getElementById('hero-subtitle')) {
+                        document.getElementById('hero-subtitle').value = data.heroSubtitle || '';
+                        if (data.heroSubtitle) document.getElementById('hero-subtitle').classList.add('saved');
+                    }
+                    if (document.getElementById('animated-title')) {
+                        document.getElementById('animated-title').value = data.animatedTitle || 'CYBEE CART';
+                        if (data.animatedTitle) document.getElementById('animated-title').classList.add('saved');
+                    }
+                    if (document.getElementById('products-title')) {
+                        document.getElementById('products-title').value = data.productsTitle || '';
+                        if (data.productsTitle) document.getElementById('products-title').classList.add('saved');
+                    }
+                    if (document.getElementById('products-subtitle')) {
+                        document.getElementById('products-subtitle').value = data.productsSubtitle || '';
+                        if (data.productsSubtitle) document.getElementById('products-subtitle').classList.add('saved');
+                    }
+                    if (document.getElementById('topbar-logo-text')) {
+                        document.getElementById('topbar-logo-text').value = data.topbarLogoText || '';
+                        if (data.topbarLogoText) document.getElementById('topbar-logo-text').classList.add('saved');
+                    }
+                    if (document.getElementById('welcome-text')) {
+                        document.getElementById('welcome-text').value = data.welcomeText || '';
+                        if (data.welcomeText) document.getElementById('welcome-text').classList.add('saved');
+                    }
+                    if (document.getElementById('login-subtitle')) {
+                        document.getElementById('login-subtitle').value = data.loginSubtitle || 'Login to your account';
+                        if (data.loginSubtitle) document.getElementById('login-subtitle').classList.add('saved');
+                    }
+                    if (document.getElementById('copyright-text')) {
+                        document.getElementById('copyright-text').value = data.copyrightText || '';
+                        if (data.copyrightText) document.getElementById('copyright-text').classList.add('saved');
+                    }
+                    if (document.getElementById('topbar-font')) {
+                        const topbarFont = data.topbarFont || 'Arial, sans-serif';
+                        document.getElementById('topbar-font').value = topbarFont;
+                        document.getElementById('topbar-font').style.fontFamily = topbarFont;
+                    }
+                    if (document.getElementById('welcome-font')) {
+                        const welcomeFont = data.welcomeFont || 'Arial, sans-serif';
+                        document.getElementById('welcome-font').value = welcomeFont;
+                        document.getElementById('welcome-font').style.fontFamily = welcomeFont;
+                    }
+                    if (document.getElementById('copyright-font')) {
+                        const copyrightFont = data.copyrightFont || 'Arial, sans-serif';
+                        document.getElementById('copyright-font').value = copyrightFont;
+                        document.getElementById('copyright-font').style.fontFamily = copyrightFont;
+                    }
+                    if (document.getElementById('order-prefix')) {
+                        document.getElementById('order-prefix').value = data.orderPrefix || 'ORD';
+                        if (data.orderPrefix) document.getElementById('order-prefix').classList.add('saved');
+                    }
+                    if (document.getElementById('currency')) {
+                        document.getElementById('currency').value = data.currency || '₹';
+                        if (data.currency) document.getElementById('currency').classList.add('saved');
+                    }
+                    
+                    // Load currency from separate document
+                    const currencyDoc = await getDoc(doc(db, 'settings', 'currency'));
+                    if (currencyDoc.exists() && document.getElementById('currency')) {
+                        document.getElementById('currency').value = currencyDoc.data().symbol || '₹';
+                        document.getElementById('currency').classList.add('saved');
+                    }
+                    if (document.getElementById('header-font')) {
+                        document.getElementById('header-font').value = data.headerFont || 'Arial, sans-serif';
+                        if (data.headerFont) document.getElementById('header-font').classList.add('saved');
+                    }
+                    if (document.getElementById('hero-products')) {
+                        const heroProducts = data.heroProducts || [];
+                        if (heroProducts.length > 0) {
+                            document.getElementById('hero-products').value = `${heroProducts.length} product(s) selected`;
+                            document.getElementById('hero-products').dataset.products = JSON.stringify(heroProducts);
+                            document.getElementById('hero-products').classList.add('saved');
+                        }
+                    }
+                    // Load hero image from separate document
+                    if (document.getElementById('hero-image')) {
+                        const heroDoc = await getDoc(doc(db, 'settings', 'hero-image'));
+                        if (heroDoc.exists() && heroDoc.data().heroImage) {
+                            const heroImageUrl = heroDoc.data().heroImage;
+                            document.getElementById('hero-image').value = 'Selected from gallery';
+                            document.getElementById('hero-image').dataset.url = heroImageUrl;
+                            const preview = document.getElementById('hero-image-preview');
+                            const previewImg = document.getElementById('hero-preview-img');
+                            previewImg.src = heroImageUrl;
+                            preview.style.display = 'block';
+                            document.getElementById('hero-image').classList.add('saved');
+                        }
+                    }
+                    
+                    // Add focus listeners to remove saved class
+                    document.querySelectorAll('.saved').forEach(field => {
+                        field.addEventListener('focus', function() {
+                            this.classList.remove('saved');
+                        });
+                    });
+                    
+                    // Update live preview after loading data
+                    setTimeout(updateLivePreview, 100);
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+        
+        // Font modal functions
+        window.openFontModal = function() {
+            document.getElementById('font-modal').style.display = 'flex';
+        }
+        
+        window.closeFontModal = function() {
+            document.getElementById('font-modal').style.display = 'none';
+        }
+        
+        window.selectFont = function(fontFamily) {
+            document.getElementById('header-font').value = fontFamily;
+            document.getElementById('header-font').classList.remove('saved');
+            closeFontModal();
+        }
+        
+        // Gallery modal functions
+        window.openGalleryModal = async function() {
+            try {
+                const { db } = await import('./firebase-config.js');
+                const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                const querySnapshot = await getDocs(collection(db, 'gallery'));
+                let galleryHTML = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto;">';
+                
+                querySnapshot.forEach((doc) => {
+                    const item = doc.data();
+                    galleryHTML += `
+                        <div style="border: 1px solid #ddd; border-radius: 4px; padding: 5px; cursor: pointer;" onclick="selectHeroImage('${item.imageUrl}', '${item.name}')">
+                            <img src="${item.imageUrl}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px;">
+                            <div style="font-size: 12px; margin-top: 5px; text-align: center;">${item.name}</div>
+                        </div>
+                    `;
+                });
+                
+                galleryHTML += '</div>';
+                
+                const modal = document.createElement('div');
+                modal.id = 'gallery-modal';
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+                modal.innerHTML = `
+                    <div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; width: 90%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3>Select Hero Image</h3>
+                            <button onclick="closeGalleryModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                        </div>
+                        ${galleryHTML}
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+            } catch (error) {
+                console.error('Error loading gallery:', error);
+                alert('Error loading gallery');
+            }
+        }
+        
+        window.closeGalleryModal = function() {
+            const modal = document.getElementById('gallery-modal');
+            if (modal) modal.remove();
+        }
+        
+        window.selectHeroImage = function(imageUrl, imageName) {
+            document.getElementById('hero-image').value = imageName;
+            document.getElementById('hero-image').dataset.url = imageUrl;
+            
+            const preview = document.getElementById('hero-image-preview');
+            const previewImg = document.getElementById('hero-preview-img');
+            previewImg.src = imageUrl;
+            preview.style.display = 'block';
+            
+            closeGalleryModal();
+        }
+        
+        // Product selection modal functions
+        window.openProductSelectionModal = async function() {
+            try {
+                const { db } = await import('./firebase-config.js');
+                const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                const querySnapshot = await getDocs(collection(db, 'products'));
+                let productsHTML = '<div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 10px;">';
+                
+                const selectedProducts = document.getElementById('hero-products').dataset.products ? JSON.parse(document.getElementById('hero-products').dataset.products) : [];
+                
+                querySnapshot.forEach((doc) => {
+                    const product = doc.data();
+                    const isSelected = selectedProducts.includes(doc.id);
+                    const firstImage = product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/50x50';
+                    
+                    productsHTML += `
+                        <div style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee;">
+                            <input type="checkbox" id="product-${doc.id}" value="${doc.id}" ${isSelected ? 'checked' : ''} style="margin-right: 10px;">
+                            <img src="${firstImage}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">
+                            <label for="product-${doc.id}" style="flex: 1; cursor: pointer;">${product.name}</label>
+                        </div>
+                    `;
+                });
+                
+                productsHTML += '</div>';
+                
+                const modal = document.createElement('div');
+                modal.id = 'product-selection-modal';
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+                modal.innerHTML = `
+                    <div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; width: 90%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3>Select Hero Products</h3>
+                            <button onclick="closeProductSelectionModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                        </div>
+                        ${productsHTML}
+                        <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="closeProductSelectionModal()" class="btn-chat">Cancel</button>
+                            <button onclick="saveSelectedProducts()" class="btn">Save Selection</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+            } catch (error) {
+                console.error('Error loading products:', error);
+                alert('Error loading products');
+            }
+        }
+        
+        window.closeProductSelectionModal = function() {
+            const modal = document.getElementById('product-selection-modal');
+            if (modal) modal.remove();
+        }
+        
+        window.saveSelectedProducts = function() {
+            const checkboxes = document.querySelectorAll('#product-selection-modal input[type="checkbox"]:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+            
+            document.getElementById('hero-products').value = selectedIds.length > 0 ? `${selectedIds.length} product(s) selected` : '';
+            document.getElementById('hero-products').dataset.products = JSON.stringify(selectedIds);
+            
+            closeProductSelectionModal();
+        }
+        
+        // Save current setting
+        window.saveCurrentSetting = async function() {
+            console.log('=== SAVE DEBUG START ===');
+            try {
+                console.log('1. Importing Firebase modules...');
+                const { db } = await import('./firebase-config.js');
+                const { doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                console.log('2. Firebase modules imported successfully');
+                
+                // Get existing data
+                console.log('3. Getting existing settings...');
+                const settingsDoc = await getDoc(doc(db, 'settings', 'pages'));
+                const existingData = settingsDoc.exists() ? settingsDoc.data() : {};
+                console.log('4. Existing data:', existingData);
+                
+                // Update with current form data
+                console.log('5. Building form data...');
+                const formData = {
+                    ...existingData,
+                    updatedAt: new Date().toISOString()
+                };
+                
+                // Get values from current form (desktop or mobile)
+                if (document.getElementById('hero-title')) formData.heroTitle = document.getElementById('hero-title').value;
+                if (document.getElementById('hero-subtitle')) formData.heroSubtitle = document.getElementById('hero-subtitle').value;
+                if (document.getElementById('animated-title')) formData.animatedTitle = document.getElementById('animated-title').value;
+                if (document.getElementById('products-title')) formData.productsTitle = document.getElementById('products-title').value;
+                if (document.getElementById('products-subtitle')) formData.productsSubtitle = document.getElementById('products-subtitle').value;
+                if (document.getElementById('topbar-logo-text')) formData.topbarLogoText = document.getElementById('topbar-logo-text').value;
+                if (document.getElementById('welcome-text')) formData.welcomeText = document.getElementById('welcome-text').value;
+                if (document.getElementById('login-subtitle')) formData.loginSubtitle = document.getElementById('login-subtitle').value;
+                if (document.getElementById('copyright-text')) formData.copyrightText = document.getElementById('copyright-text').value;
+                if (document.getElementById('topbar-font')) formData.topbarFont = document.getElementById('topbar-font').value;
+                if (document.getElementById('welcome-font')) formData.welcomeFont = document.getElementById('welcome-font').value;
+                if (document.getElementById('copyright-font')) formData.copyrightFont = document.getElementById('copyright-font').value;
+                if (document.getElementById('order-prefix')) formData.orderPrefix = document.getElementById('order-prefix').value;
+                // Save currency to separate document
+                if (document.getElementById('currency')) {
+                    await setDoc(doc(db, 'settings', 'currency'), {
+                        symbol: document.getElementById('currency').value,
+                        updatedAt: new Date().toISOString()
+                    });
+                }
+                if (document.getElementById('header-font')) formData.headerFont = document.getElementById('header-font').value;
+                if (document.getElementById('hero-products') && document.getElementById('hero-products').dataset.products) {
+                    formData.heroProducts = JSON.parse(document.getElementById('hero-products').dataset.products);
+                }
+                // Save hero image separately to avoid document size limit
+                if (document.getElementById('hero-image') && document.getElementById('hero-image').dataset.url) {
+                    const { setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                    await setDoc(doc(db, 'settings', 'hero-image'), {
+                        heroImage: document.getElementById('hero-image').dataset.url,
+                        updatedAt: new Date().toISOString()
+                    });
+                }
+                
+                // Mobile fields
+                if (document.getElementById('mobile-hero-title')) formData.heroTitle = document.getElementById('mobile-hero-title').value;
+                if (document.getElementById('mobile-hero-subtitle')) formData.heroSubtitle = document.getElementById('mobile-hero-subtitle').value;
+                if (document.getElementById('mobile-animated-title')) formData.animatedTitle = document.getElementById('mobile-animated-title').value;
+                if (document.getElementById('mobile-products-title')) formData.productsTitle = document.getElementById('mobile-products-title').value;
+                if (document.getElementById('mobile-products-subtitle')) formData.productsSubtitle = document.getElementById('mobile-products-subtitle').value;
+                if (document.getElementById('mobile-order-prefix')) formData.orderPrefix = document.getElementById('mobile-order-prefix').value;
+                if (document.getElementById('mobile-currency')) formData.currency = document.getElementById('mobile-currency').value;
+                if (document.getElementById('mobile-hero-products') && document.getElementById('mobile-hero-products').dataset.products) {
+                    formData.heroProducts = JSON.parse(document.getElementById('mobile-hero-products').dataset.products);
+                }
+                
+                console.log('6. Final form data to save:', formData);
+                console.log('7. Saving to Firebase...');
+                await setDoc(doc(db, 'settings', 'pages'), formData);
+                console.log('8. ✅ Save completed successfully!');
+                
+                // Mark all current fields as saved
+                document.querySelectorAll('#setting-content input, #setting-content textarea, #setting-content select').forEach(field => {
+                    if (field.value) {
+                        field.classList.add('saved');
+                        field.addEventListener('focus', function() {
+                            this.classList.remove('saved');
+                        });
+                    }
+                });
+                
+                console.log('9. Showing success notification...');
+                showNotification('Settings saved successfully!', 'success');
+                console.log('=== SAVE DEBUG END ===');
+            } catch (error) {
+                console.error('❌ SAVE ERROR:', error);
+                console.error('Error details:', error.message);
+                showNotification('Error saving settings: ' + error.message, 'error');
+                console.log('=== SAVE DEBUG END (ERROR) ===');
+            }
+        }
+        
+        // Live preview update function
+        window.updateLivePreview = function() {
+            const topbarText = document.getElementById('topbar-logo-text')?.value || 'Store Name';
+            const welcomeText = document.getElementById('welcome-text')?.value || 'Welcome';
+            const subtitleText = document.getElementById('login-subtitle')?.value || 'Login to your account';
+            const copyrightText = document.getElementById('copyright-text')?.value || '© 2024 Your Company';
+            
+            const topbarFont = document.getElementById('topbar-font')?.value || 'Arial, sans-serif';
+            const welcomeFont = document.getElementById('welcome-font')?.value || 'Arial, sans-serif';
+            const copyrightFont = document.getElementById('copyright-font')?.value || 'Arial, sans-serif';
+            
+            if (document.getElementById('preview-topbar')) {
+                document.getElementById('preview-topbar').textContent = topbarText;
+                document.getElementById('preview-topbar').style.fontFamily = topbarFont;
+            }
+            if (document.getElementById('preview-welcome')) {
+                document.getElementById('preview-welcome').textContent = welcomeText;
+                document.getElementById('preview-welcome').style.fontFamily = welcomeFont;
+            }
+            if (document.getElementById('preview-subtitle')) {
+                document.getElementById('preview-subtitle').textContent = subtitleText;
+            }
+            if (document.getElementById('preview-copyright')) {
+                document.getElementById('preview-copyright').textContent = copyrightText;
+                document.getElementById('preview-copyright').style.fontFamily = copyrightFont;
+            }
+        }
+        
+        // Notification system
+        window.showNotification = function(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                transform: translateX(400px);
+                transition: transform 0.3s ease;
+            `;
+            
+            if (type === 'success') {
+                notification.style.background = '#27ae60';
+            } else if (type === 'error') {
+                notification.style.background = '#e74c3c';
+            } else {
+                notification.style.background = '#3498db';
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+            setTimeout(() => notification.style.transform = 'translateX(400px)', 3000);
+            setTimeout(() => document.body.removeChild(notification), 3500);
+        }
+        
+        // Load orders for mobile management
+        async function loadMobileOrdersForManagement() {
+            try {
+                const { db } = await import('./firebase-config.js');
+                const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                const querySnapshot = await getDocs(collection(db, 'orders'));
+                const container = document.getElementById('mobile-orders-dropdown');
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<div style="padding: 10px;">No orders found</div>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const order = doc.data();
+                    const orderNumber = order.orderNumber || doc.id.substring(0, 8);
+                    const customerName = order.customerInfo?.name || 'Unknown';
+                    const orderDate = new Date(order.orderDate).toLocaleDateString();
+                    
+                    container.innerHTML += `
+                        <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #eee;" onclick="event.stopPropagation();">
+                            <input type="checkbox" id="mobile-order-${doc.id}" value="${doc.id}" style="margin-right: 10px; flex-shrink: 0;" onchange="updateMobileSelectedCount()">
+                            <label for="mobile-order-${doc.id}" style="flex: 1; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Order #${orderNumber} - ${customerName} (${orderDate})</label>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('mobile-orders-dropdown').innerHTML = '<div style="padding: 10px;">Error loading orders</div>';
+            }
+        }
+        
+        // Show mobile dropdown on focus
+        window.showMobileOrderDropdown = function() {
+            document.getElementById('mobile-orders-dropdown').style.display = 'block';
+        }
+        
+        // Filter mobile orders
+        window.filterMobileOrders = function() {
+            const searchTerm = document.getElementById('mobile-order-search').value.toLowerCase();
+            const items = document.querySelectorAll('#mobile-orders-dropdown > div');
+            
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+            });
+            
+            document.getElementById('mobile-orders-dropdown').style.display = 'block';
+        }
+        
+        // Update mobile selected count
+        window.updateMobileSelectedCount = function() {
+            const checkboxes = document.querySelectorAll('#mobile-orders-dropdown input[type="checkbox"]:checked');
+            const searchInput = document.getElementById('mobile-order-search');
+            if (checkboxes.length === 0) {
+                searchInput.placeholder = 'Search orders...';
+            } else {
+                searchInput.placeholder = `${checkboxes.length} order(s) selected - Search orders...`;
+            }
+        }
+        
+        // Setup mobile delete order button
+        function setupMobileDeleteOrderButton() {
+            document.getElementById('mobile-delete-order-btn').addEventListener('click', async function() {
+                const checkboxes = document.querySelectorAll('#mobile-orders-dropdown input[type="checkbox"]:checked');
+                if (checkboxes.length === 0) {
+                    alert('Please select at least one order to delete');
+                    return;
+                }
+                
+                if (!confirm(`Are you sure you want to delete ${checkboxes.length} order(s)? This will restore product stock.`)) {
+                    return;
+                }
+                
+                try {
+                    const { db } = await import('./firebase-config.js');
+                    const { doc, getDoc, updateDoc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                    
+                    for (const checkbox of checkboxes) {
+                        const orderId = checkbox.value;
+                        const orderDoc = await getDoc(doc(db, 'orders', orderId));
+                        const orderData = orderDoc.data();
+                        
+                        for (const item of orderData.items) {
+                            if (!item.id) continue;
+                            
+                            try {
+                                const productRef = doc(db, 'products', item.id);
+                                const productDoc = await getDoc(productRef);
+                                
+                                if (productDoc.exists()) {
+                                    const currentStock = parseInt(productDoc.data().stock) || 0;
+                                    const restoreQuantity = parseInt(item.quantity) || 0;
+                                    const restoredStock = currentStock + restoreQuantity;
+                                    
+                                    await updateDoc(productRef, { stock: restoredStock });
+                                }
+                            } catch (error) {
+                                console.error('Error restoring stock for product:', item.id, error);
+                            }
+                        }
+                        
+                        await deleteDoc(doc(db, 'orders', orderId));
+                    }
+                    
+                    alert(`${checkboxes.length} order(s) deleted and stock restored successfully!`);
+                    loadMobileOrdersForManagement();
+                    
+                } catch (error) {
+                    console.error('Error deleting order:', error);
+                    alert('Error deleting order');
+                }
+            });
+        }
+        
+        // Load orders for desktop management
+        async function loadOrdersForManagement() {
+            try {
+                const { db } = await import('./firebase-config.js');
+                const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                const querySnapshot = await getDocs(collection(db, 'orders'));
+                const container = document.getElementById('orders-dropdown');
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<div style="padding: 10px;">No orders found</div>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const order = doc.data();
+                    const orderNumber = order.orderNumber || doc.id.substring(0, 8);
+                    const customerName = order.customerInfo?.name || 'Unknown';
+                    const orderDate = new Date(order.orderDate).toLocaleDateString();
+                    
+                    container.innerHTML += `
+                        <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #eee;" onclick="event.stopPropagation();">
+                            <input type="checkbox" id="order-${doc.id}" value="${doc.id}" style="margin-right: 10px; flex-shrink: 0;" onchange="updateSelectedCount()">
+                            <label for="order-${doc.id}" style="flex: 1; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Order #${orderNumber} - ${customerName} (${orderDate})</label>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('orders-dropdown').innerHTML = '<div style="padding: 10px;">Error loading orders</div>';
+            }
+        }
+        
+        // Show dropdown on focus
+        window.showOrderDropdown = function() {
+            document.getElementById('orders-dropdown').style.display = 'block';
+        }
+        
+        // Filter orders
+        window.filterOrders = function() {
+            const searchTerm = document.getElementById('order-search').value.toLowerCase();
+            const items = document.querySelectorAll('#orders-dropdown > div');
+            
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+            });
+            
+            document.getElementById('orders-dropdown').style.display = 'block';
+        }
+        
+        // Update selected count (keep for checkbox changes)
+        window.updateSelectedCount = function() {
+            const checkboxes = document.querySelectorAll('#orders-dropdown input[type="checkbox"]:checked');
+            const searchInput = document.getElementById('order-search');
+            if (checkboxes.length === 0) {
+                searchInput.placeholder = 'Search orders...';
+            } else {
+                searchInput.placeholder = `${checkboxes.length} order(s) selected - Search orders...`;
+            }
+        }
+        
+        // Setup desktop delete order button
+        function setupDeleteOrderButton() {
+            document.getElementById('delete-order-btn').addEventListener('click', async function() {
+                const checkboxes = document.querySelectorAll('#orders-dropdown input[type="checkbox"]:checked');
+                if (checkboxes.length === 0) {
+                    alert('Please select at least one order to delete');
+                    return;
+                }
+                
+                if (!confirm(`Are you sure you want to delete ${checkboxes.length} order(s)? This will restore product stock.`)) {
+                    return;
+                }
+                
+                try {
+                    const { db } = await import('./firebase-config.js');
+                    const { doc, getDoc, updateDoc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                    
+                    for (const checkbox of checkboxes) {
+                        const orderId = checkbox.value;
+                        const orderDoc = await getDoc(doc(db, 'orders', orderId));
+                        const orderData = orderDoc.data();
+                        
+                        for (const item of orderData.items) {
+                            if (!item.id) continue;
+                            
+                            try {
+                                const productRef = doc(db, 'products', item.id);
+                                const productDoc = await getDoc(productRef);
+                                
+                                if (productDoc.exists()) {
+                                    const currentStock = parseInt(productDoc.data().stock) || 0;
+                                    const restoreQuantity = parseInt(item.quantity) || 0;
+                                    const restoredStock = currentStock + restoreQuantity;
+                                    
+                                    await updateDoc(productRef, { stock: restoredStock });
+                                }
+                            } catch (error) {
+                                console.error('Error restoring stock for product:', item.id, error);
+                            }
+                        }
+                        
+                        await deleteDoc(doc(db, 'orders', orderId));
+                    }
+                    
+                    alert(`${checkboxes.length} order(s) deleted and stock restored successfully!`);
+                    loadOrdersForManagement();
+                    
+                } catch (error) {
+                    console.error('Error deleting order:', error);
+                    alert('Error deleting order');
+                }
+            });
+        }
+        
+        // Show mobile order management
+        function showMobileOrderManagement() {
+            // Create mobile modal if it doesn't exist
+            let modal = document.getElementById('mobile-order-management');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'mobile-order-management';
+                modal.className = 'mobile-modal';
+                modal.innerHTML = `
+                    <div class="mobile-modal-header">
+                        <button class="mobile-back-btn" onclick="closeMobileOrderManagement()"><i class="fas fa-arrow-left"></i></button>
+                        <h3>Order Management</h3>
+                    </div>
+                    <div class="mobile-modal-content">
+                        <div class="form-section">
+                            <input type="text" id="mobile-order-filter" placeholder="Search orders..." style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;" oninput="filterMobileOrderManagement()">
+                            <div id="mobile-order-management-list" style="max-height: 60vh; overflow-y: auto;">
+                                Loading orders...
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mobile-modal-footer">
+                        <button type="button" onclick="deleteMobileSelectedOrders()" class="btn-danger" style="width: 100%;">Delete Selected Orders</button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            
+            loadMobileOrderManagement();
+            modal.style.display = 'flex';
+        }
+        
+        // Show desktop order management
+        function showDesktopOrderManagement() {
+            document.getElementById('no-setting-selected').style.display = 'none';
+            document.getElementById('setting-detail-view').style.display = 'flex';
+            
+            const content = document.getElementById('setting-content');
+            content.innerHTML = `
+                <div class="form-section">
+                    <h3>Order Management</h3>
+                    <input type="text" id="desktop-order-filter" placeholder="Search orders..." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px;" oninput="filterDesktopOrderManagement()">
+                    <div id="desktop-order-management-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 10px;">
+                        Loading orders...
+                    </div>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button type="button" onclick="selectAllDesktopOrders()" class="btn-chat">Select All</button>
+                        <button type="button" onclick="clearAllDesktopOrders()" class="btn-chat">Clear All</button>
+                        <button type="button" onclick="deleteDesktopSelectedOrders()" class="btn-danger" style="margin-left: auto;">Delete Selected Orders</button>
+                    </div>
+                </div>
+            `;
+            
+            loadDesktopOrderManagement();
+        }
+        
+        // Close mobile order management
+        window.closeMobileOrderManagement = function() {
+            document.getElementById('mobile-order-management').style.display = 'none';
+            document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
+        }
+        
+        // Load mobile order management
+        async function loadMobileOrderManagement() {
+            try {
+                const { db } = await import('./firebase-config.js');
+                const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                const querySnapshot = await getDocs(collection(db, 'orders'));
+                const container = document.getElementById('mobile-order-management-list');
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No orders found</div>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const order = doc.data();
+                    const orderNumber = order.orderNumber || doc.id.substring(0, 8);
+                    const customerName = order.customerInfo?.name || 'Unknown';
+                    const orderDate = new Date(order.orderDate).toLocaleDateString();
+                    
+                    container.innerHTML += `
+                        <div class="order-item" style="display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; background: white; margin-bottom: 5px; border-radius: 4px;">
+                            <input type="checkbox" value="${doc.id}" style="margin-right: 15px; transform: scale(1.2);">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 5px;">Order #${orderNumber}</div>
+                                <div style="font-size: 14px; color: #666;">${customerName}</div>
+                                <div style="font-size: 12px; color: #999;">${orderDate}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('mobile-order-management-list').innerHTML = '<div style="padding: 20px; text-align: center; color: #e74c3c;">Error loading orders</div>';
+            }
+        }
+        
+        // Load desktop order management
+        async function loadDesktopOrderManagement() {
+            try {
+                const { db } = await import('./firebase-config.js');
+                const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                const querySnapshot = await getDocs(collection(db, 'orders'));
+                const container = document.getElementById('desktop-order-management-list');
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No orders found</div>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const order = doc.data();
+                    const orderNumber = order.orderNumber || doc.id.substring(0, 8);
+                    const customerName = order.customerInfo?.name || 'Unknown';
+                    const orderDate = new Date(order.orderDate).toLocaleDateString();
+                    
+                    container.innerHTML += `
+                        <div class="order-item" style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee;">
+                            <input type="checkbox" value="${doc.id}" style="margin-right: 10px;">
+                            <div style="flex: 1;">
+                                <strong>Order #${orderNumber}</strong> - ${customerName} (${orderDate})
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('desktop-order-management-list').innerHTML = '<div style="padding: 20px; text-align: center; color: #e74c3c;">Error loading orders</div>';
+            }
+        }
+        
+        // Filter functions
+        window.filterMobileOrderManagement = function() {
+            const searchTerm = document.getElementById('mobile-order-filter').value.toLowerCase();
+            const items = document.querySelectorAll('#mobile-order-management-list .order-item');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+            });
+        }
+        
+        window.filterDesktopOrderManagement = function() {
+            const searchTerm = document.getElementById('desktop-order-filter').value.toLowerCase();
+            const items = document.querySelectorAll('#desktop-order-management-list .order-item');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+            });
+        }
+        
+        // Select/Clear functions
+        window.selectAllDesktopOrders = function() {
+            document.querySelectorAll('#desktop-order-management-list input[type="checkbox"]').forEach(cb => cb.checked = true);
+        }
+        
+        window.clearAllDesktopOrders = function() {
+            document.querySelectorAll('#desktop-order-management-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+        
+        // Delete functions
+        window.deleteMobileSelectedOrders = async function() {
+            const checkboxes = document.querySelectorAll('#mobile-order-management-list input[type="checkbox"]:checked');
+            if (checkboxes.length === 0) {
+                alert('Please select at least one order to delete');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete ${checkboxes.length} order(s)? This will restore product stock.`)) {
+                return;
+            }
+            
+            await deleteSelectedOrders(checkboxes);
+            loadMobileOrderManagement();
+        }
+        
+        window.deleteDesktopSelectedOrders = async function() {
+            const checkboxes = document.querySelectorAll('#desktop-order-management-list input[type="checkbox"]:checked');
+            if (checkboxes.length === 0) {
+                alert('Please select at least one order to delete');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete ${checkboxes.length} order(s)? This will restore product stock.`)) {
+                return;
+            }
+            
+            await deleteSelectedOrders(checkboxes);
+            loadDesktopOrderManagement();
+        }
+        
+        // Common delete function
+        async function deleteSelectedOrders(checkboxes) {
+            try {
+                const { db } = await import('./firebase-config.js');
+                const { doc, getDoc, updateDoc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                for (const checkbox of checkboxes) {
+                    const orderId = checkbox.value;
+                    const orderDoc = await getDoc(doc(db, 'orders', orderId));
+                    const orderData = orderDoc.data();
+                    
+                    for (const item of orderData.items) {
+                        if (!item.id) continue;
+                        
+                        try {
+                            const productRef = doc(db, 'products', item.id);
+                            const productDoc = await getDoc(productRef);
+                            
+                            if (productDoc.exists()) {
+                                const currentStock = parseInt(productDoc.data().stock) || 0;
+                                const restoreQuantity = parseInt(item.quantity) || 0;
+                                const restoredStock = currentStock + restoreQuantity;
+                                
+                                await updateDoc(productRef, { stock: restoredStock });
+                            }
+                        } catch (error) {
+                            console.error('Error restoring stock for product:', item.id, error);
+                        }
+                    }
+                    
+                    await deleteDoc(doc(db, 'orders', orderId));
+                }
+                
+                alert(`${checkboxes.length} order(s) deleted and stock restored successfully!`);
+            } catch (error) {
+                console.error('Error deleting orders:', error);
+                alert('Error deleting orders');
+            }
+        }
+    </script>
+</body>
+</html>

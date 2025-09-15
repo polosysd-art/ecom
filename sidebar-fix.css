@@ -1,0 +1,37 @@
+.offcanvas-backdrop {
+    background-color: transparent !important;
+}
+
+.list-group-item {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+.list-group-item-action {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+.offcanvas-body a {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    position: relative;
+    z-index: 9999 !important;
+}
+
+.offcanvas {
+    z-index: 9998 !important;
+}
+
+/* Role-based visibility - hide immediately */
+.auth-only,
+.admin-only,
+.nav-link.auth-only,
+.nav-link.admin-only {
+    display: none !important;
+}
+
+.guest-only,
+.nav-link.guest-only {
+    display: block !important;
+}

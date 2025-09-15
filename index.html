@@ -2,81 +2,187 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=0.75">
     <title>Ecommerce Store</title>
-    <link rel="stylesheet" href="shared/navigation.css">
-    <link rel="stylesheet" href="frontend/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="sidebar-fix.css" rel="stylesheet">
+    <link rel="stylesheet" href="admin-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <!-- Top Bar -->
-    <div class="top-bar">
-        <div class="top-bar-left">
-            <button class="menu-toggle"><i class="fas fa-bars"></i></button>
-        </div>
-        <div class="top-bar-center">
-            <img class="store-logo" id="store-logo" alt="Store Logo">
-            <div class="top-bar-title"></div>
-        </div>
-        <div class="top-bar-right">
-            <button class="icon-btn search-btn"><i class="fas fa-search"></i></button>
-            <button class="icon-btn cart-btn">
-                <i class="fas fa-shopping-cart"></i>
-                <span class="cart-count">0</span>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" style="z-index: 9999;">
+        <div class="container-fluid">
+            <button class="btn text-white me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" style="cursor: pointer;">
+                <i class="fas fa-bars"></i>
             </button>
+            <a class="navbar-brand mx-auto" href="#">
+                <img class="store-logo" id="store-logo" alt="Store Logo" style="max-height: 40px; display: none;">
+                <span class="top-bar-title fw-bold"></span>
+            </a>
+            <div class="d-flex">
+                <button class="btn text-white me-2 search-btn"><i class="fas fa-search"></i></button>
+                <button class="btn text-white d-flex align-items-center cart-btn">
+                    <span class="badge bg-danger me-2 cart-count" style="display: none;">0</span>
+                    <i class="fas fa-shopping-cart"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- New Sidebar -->
+    <div class="offcanvas offcanvas-start bg-white" tabindex="-1" id="sidebar" style="width: 300px; top: 56px;">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title">Menu</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <nav class="nav flex-column">
+                <a class="nav-link d-flex align-items-center py-3 px-4" href="index.html">
+                    <i class="fas fa-home me-3"></i>Home
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4" href="shopping-cart.html">
+                    <i class="fas fa-shopping-cart me-3"></i>Cart
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 auth-only" href="myorders.html">
+                    <i class="fas fa-box me-3"></i>Orders
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 auth-only" href="profile.html">
+                    <i class="fas fa-user me-3"></i>Profile
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 guest-only" href="login.html">
+                    <i class="fas fa-sign-in-alt me-3"></i>Login
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 admin-only" href="dashboard.html">
+                    <i class="fas fa-cog me-3"></i>Admin
+                </a>
+                <a class="nav-link d-flex align-items-center py-3 px-4 text-danger auth-only" href="#" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt me-3"></i>Logout
+                </a>
+            </nav>
         </div>
     </div>
-
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <nav class="sidebar-nav">
-            <a href="index.html" class="nav-item active">Home</a>
-            <a href="frontend/shopping-cart.html" class="nav-item">Cart</a>
-            <a href="frontend/orders.html" class="nav-item" id="orders-nav" style="display:none;">My Orders</a>
-            <a href="frontend/profile.html" class="nav-item" id="profile-nav" style="display:none;">Profile</a>
-            <a href="login.html" class="nav-item" id="login-nav">Login</a>
-            <a href="#" class="nav-item" id="admin-nav" style="display:none;">Admin Panel</a>
-            <a href="#" class="nav-item" id="logout-nav" style="display:none;">Logout</a>
-        </nav>
-    </div>
-
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay"></div>
 
     <!-- Main Content -->
-    <div class="main-content">
-        <section class="hero" id="hero-section">
-            <div class="hero-banner" id="hero-banner" style="display:none;">
-                <img id="hero-banner-img" alt="Hero Banner">
-            </div>
-            <div class="hero-content">
-                <h2 id="hero-title"></h2>
-                <p id="hero-subtitle"></p>
-            </div>
-        </section>
-
-        <section class="products-section">
-            <div class="animated-header">
-                <div class="bubbles">
-                    <div class="bubble"></div>
-                    <div class="bubble"></div>
-                    <div class="bubble"></div>
-                    <div class="bubble"></div>
-                    <div class="bubble"></div>
-                    <div class="bubble"></div>
+    <div class="container-fluid p-0" style="margin-top: 56px;">
+        <!-- Hero Section -->
+        <section class="hero p-0" id="hero-section">
+            <div class="w-100" style="min-height: 400px; padding: 20px;">
+                <div id="hero-product-slider" class="w-100 h-100" style="min-height: 360px;">
+                    <!-- Single product card will be displayed here -->
                 </div>
-                <h1 class="animated-title" id="animated-title">CYBEE CART</h1>
-            </div>
-            <div class="products-grid" id="products-grid">
-                <!-- Products will be loaded here -->
             </div>
         </section>
+        
+        <style>
+        .hero-product-fade {
+            animation: fadeInOut 3s ease-in-out;
+        }
+        .hero-product-slide {
+            animation: slideIn 3s ease-in-out;
+        }
+        .hero-product-zoom {
+            animation: zoomIn 3s ease-in-out;
+        }
+        .hero-product-bounce {
+            animation: bounceIn 3s ease-in-out;
+        }
+        .hero-product-rotate {
+            animation: rotateIn 3s ease-in-out;
+        }
+        .hero-product-pulse {
+            animation: pulseIn 3s ease-in-out;
+        }
+        .hero-product-flip {
+            animation: flipIn 3s ease-in-out;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.9); }
+            20% { opacity: 1; transform: scale(1); }
+            80% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.9); }
+        }
+        @keyframes slideIn {
+            0% { opacity: 0; transform: translateX(-100%); }
+            20% { opacity: 1; transform: translateX(0); }
+            80% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(100%); }
+        }
+        @keyframes zoomIn {
+            0% { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+            20% { opacity: 1; transform: scale(1) rotate(0deg); }
+            80% { opacity: 1; transform: scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: scale(1.2) rotate(10deg); }
+        }
+        @keyframes flipIn {
+            0% { opacity: 0; transform: rotateY(-90deg); }
+            20% { opacity: 1; transform: rotateY(0deg); }
+            80% { opacity: 1; transform: rotateY(0deg); }
+            100% { opacity: 0; transform: rotateY(90deg); }
+        }
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3) translateY(-100px); }
+            20% { opacity: 1; transform: scale(1.1) translateY(0); }
+            40% { transform: scale(0.9); }
+            60% { transform: scale(1.03); }
+            80% { transform: scale(0.97); }
+            100% { opacity: 0; transform: scale(1.2) translateY(50px); }
+        }
+        @keyframes rotateIn {
+            0% { opacity: 0; transform: rotate(-360deg) scale(0.5); }
+            20% { opacity: 1; transform: rotate(0deg) scale(1); }
+            80% { opacity: 1; transform: rotate(0deg) scale(1); }
+            100% { opacity: 0; transform: rotate(360deg) scale(0.5); }
+        }
+        @keyframes pulseIn {
+            0% { opacity: 0; transform: scale(0.8); box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
+            20% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+            40% { transform: scale(1.1); box-shadow: 0 0 0 20px rgba(102, 126, 234, 0); }
+            60% { transform: scale(1); box-shadow: 0 0 0 30px rgba(102, 126, 234, 0); }
+            80% { transform: scale(1.05); box-shadow: 0 0 0 40px rgba(102, 126, 234, 0); }
+            100% { opacity: 0; transform: scale(0.9); box-shadow: 0 0 0 50px rgba(102, 126, 234, 0); }
+        }
+        </style>
+        
+        <style>
+            @media (min-width: 768px) {
+                #hero-section { min-height: 400px !important; }
+                #hero-product-slider { min-height: 360px !important; }
+            }
+            .hero-product-mobile > div:first-child { width: 50% !important; }
+            .hero-product-mobile > div:last-child { width: 50% !important; }
+            @media (max-width: 767px) {
+                #hero-section { min-height: 220px !important; }
+                #hero-product-slider { min-height: 180px !important; }
+            }
+        </style>
 
+
+
+        <!-- Products Section -->
+        <section class="py-4">
+            <div class="container">
+                <h2 class="text-center mb-4" id="animated-title" style="display: none;"></h2>
+                <div class="row" id="products-grid">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+        </section>
     </div>
 
-    <script type="module" src="shared/navigation.js"></script>
-    <script type="module" src="frontend/js/store.js"></script>
-    <script type="module" src="frontend/js/page-content.js"></script>
-    <script type="module" src="frontend/js/products-loader.js"></script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .bubble:nth-child(1) { top: 20%; left: 10%; }
+        .bubble:nth-child(2) { top: 60%; left: 80%; }
+        .bubble:nth-child(3) { top: 40%; left: 60%; }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="navigation.js"></script>
+    <script type="module" src="page-content.js"></script>
+    <script type="module" src="products-loader.js"></script>
 </body>
 </html>
