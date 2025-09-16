@@ -186,13 +186,15 @@
                 return;
             }
             
-            // Confirm before requesting location
-            if (!confirm('This will request access to your location to auto-fill your address. Click OK to allow when prompted by your browser.')) {
-                return;
-            }
-            
             detectBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Detecting...';
             detectBtn.disabled = true;
+            
+            // Mobile-optimized geolocation options
+            const options = {
+                enableHighAccuracy: false, // Use network location for faster response on mobile
+                timeout: 15000, // Longer timeout for mobile
+                maximumAge: 600000 // 10 minutes cache
+            };
             
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
@@ -218,10 +220,26 @@
                     detectBtn.disabled = false;
                 },
                 (error) => {
-                    alert('Please allow location access when prompted by your browser, then try again.');
+                    let message;
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            message = 'Location access denied. Please enable location in your browser settings and try again.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            message = 'Location unavailable. Please enter address manually.';
+                            break;
+                        case error.TIMEOUT:
+                            message = 'Location request timed out. Please try again or enter address manually.';
+                            break;
+                        default:
+                            message = 'Location error. Please enter address manually.';
+                            break;
+                    }
+                    alert(message);
                     detectBtn.innerHTML = '<i class="fas fa-location-arrow me-1"></i>Detect My Location';
                     detectBtn.disabled = false;
-                }
+                },
+                options
             );
         }
         
