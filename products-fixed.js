@@ -259,7 +259,14 @@ function renderProducts() {
         filteredProducts = filteredProducts.filter(product => {
             return product.name.toLowerCase().includes(searchTerm) ||
                    (product.description && product.description.toLowerCase().includes(searchTerm)) ||
-                   (product.category && product.category.toLowerCase().includes(searchTerm));
+                   (product.category && product.category.toLowerCase().includes(searchTerm)) ||
+                   (product.brand && product.brand.toLowerCase().includes(searchTerm)) ||
+                   (product.color && product.color.toLowerCase().includes(searchTerm)) ||
+                   (product.size && product.size.toLowerCase().includes(searchTerm)) ||
+                   (product.unit && product.unit.toLowerCase().includes(searchTerm)) ||
+                   (product.barcode && product.barcode.toLowerCase().includes(searchTerm)) ||
+                   (product.price && product.price.toString().includes(searchTerm)) ||
+                   (product.stock && product.stock.toString().includes(searchTerm));
         });
     }
     
@@ -343,12 +350,15 @@ window.selectProduct = function(productId) {
         return;
     }
     
-    // Show detail view and header
+    // Hide no-selection and show detail view
+    document.getElementById('no-selection').style.display = 'none';
     document.getElementById('product-detail-view').style.display = 'flex';
     document.getElementById('detail-header').style.display = 'flex';
     
-    // Update product details
+    // Update product details and show header
     document.getElementById('product-title').textContent = product.name;
+    document.getElementById('edit-product-btn').style.display = 'inline-block';
+    document.getElementById('delete-product-btn').style.display = 'inline-block';
     
     const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType, product.vat);
     
@@ -357,8 +367,8 @@ window.selectProduct = function(productId) {
             <h3>Product Information</h3>
             <div class="product-images mb-3">
                 ${product.images && product.images.length > 0 ? 
-                    product.images.map(img => `<img src="${img}" alt="Product image" style="height: 120px; width: 120px; object-fit: cover; margin: 5px; border-radius: 8px; border: 1px solid #ddd;">`).join('') : 
-                    '<img src="https://via.placeholder.com/120x120" alt="No image" style="height: 120px; width: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">'}
+                    product.images.map(img => `<img src="${img}" alt="Product image" style="height: 80px; width: 80px; object-fit: contain; margin: 5px; border-radius: 8px;">`).join('') : 
+                    '<img src="https://via.placeholder.com/80x80" alt="No image" style="height: 80px; width: 80px; object-fit: contain; border-radius: 8px;">'}
             </div>
             ${product.vat ? `<div class="info-row"><label>Base Price:</label> <span>${currencySymbol}${calculateBasePrice(product.price, product.vat).toFixed(2)}</span></div>` : ''}
             <div class="info-row"><label>Price (Inc. Tax):</label> <span>${currencySymbol}${product.price}</span></div>
@@ -375,6 +385,8 @@ window.selectProduct = function(productId) {
             ${product.size ? `<div class="info-row"><label>Size:</label> <span>${product.size}</span></div>` : ''}
             ${product.unit ? `<div class="info-row"><label>Unit:</label> <span>${product.unit}</span></div>` : ''}
             ${product.vat ? `<div class="info-row"><label>VAT:</label> <span>${product.vat}%</span></div>` : ''}
+            ${product.barcode ? `<div class="info-row"><label>Barcodes:</label> <span>${product.barcode.replace(/\n/g, ', ')}</span></div>` : ''}
+            <div class="info-row"><label>Hero Banner:</label> <span>${product.heroBanner ? 'Yes' : 'No'}</span></div>
         </div>
         <div class="form-section">
             <h3>Description</h3>
@@ -385,6 +397,12 @@ window.selectProduct = function(productId) {
     `;
     
     // Setup action buttons
+    const toggleBannerBtn = document.getElementById('toggle-banner-btn');
+    toggleBannerBtn.innerHTML = product.heroBanner ? '<i class="fas fa-star-half-alt"></i>' : '<i class="fas fa-star"></i>';
+    toggleBannerBtn.title = product.heroBanner ? 'Remove from Banner' : 'Add to Banner';
+    toggleBannerBtn.onclick = () => toggleBanner(productId);
+    
+    document.getElementById('add-stock-btn').onclick = () => addStock(productId);
     document.getElementById('edit-product-btn').onclick = () => editProduct(productId);
     document.getElementById('delete-product-btn').onclick = () => deleteProduct(productId);
 };
@@ -394,13 +412,7 @@ window.editProduct = function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
     
-    if (window.innerWidth <= 768) {
-        // Hide product list on mobile
-        document.querySelector('.col-md-4.col-lg-3').style.display = 'none';
-        document.querySelector('.col-md-8.col-lg-9').className = 'col-12';
-    }
-    
-    document.getElementById('product-detail').innerHTML = `
+    document.getElementById('product-details-content').innerHTML = `
         <div class="card">
             <div class="card-header">
                 <h5>Edit Product</h5>
@@ -424,7 +436,7 @@ window.editProduct = function(productId) {
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Discount</label>
-                            <input type="number" class="form-control" id="edit-product-discount" min="0" value="${product.discount || 0}">
+                            <input type="number" class="form-control" id="edit-product-discount" min="0" step="0.1" value="${product.discount || ''}">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Discount Type</label>
@@ -436,12 +448,11 @@ window.editProduct = function(productId) {
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <span class="form-label d-block">Final Price (Inc. Tax)</span>
-                            <span class="h5 text-success" id="edit-product-final-price">Final: ₹0.00</span>
-                        </div>
-                        <div class="col-md-6">
                             <label class="form-label">VAT %</label>
                             <select class="form-select" id="edit-product-vat"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="h5 text-success" id="edit-product-final-price">Final: ₹0.00</span>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -463,6 +474,13 @@ window.editProduct = function(productId) {
                         <label class="form-label">Description</label>
                         <textarea class="form-control" id="edit-product-description" rows="3">${product.description || ''}</textarea>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Barcode</label>
+                        <div class="d-flex">
+                            <input type="text" class="form-control me-2" id="edit-product-barcode" value="${product.barcode ? product.barcode.split('\n')[0] || '' : ''}" placeholder="Primary barcode">
+                            <button type="button" class="btn btn-outline-secondary" onclick="openBarcodeManager('edit-product')">More Barcodes</button>
+                        </div>
+                    </div>
                     <div class="row mb-3">
                         <div class="col-md-3">
                             <label class="form-label">Brand</label>
@@ -481,6 +499,12 @@ window.editProduct = function(productId) {
                             <select class="form-select" id="edit-product-unit"></select>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="edit-product-hero-banner" ${product.heroBanner ? 'checked' : ''}>
+                            <label class="form-check-label" for="edit-product-hero-banner">Hero Banner Product</label>
+                        </div>
+                    </div>
                     <div class="d-flex gap-2">
                         <button onclick="addStock('${productId}')" class="btn btn-success" style="height: 38px; flex: 1;">
                             <i class="fas fa-plus"></i> Stock
@@ -490,7 +514,7 @@ window.editProduct = function(productId) {
                         </button>
                     </div>
                     <div class="d-flex gap-2 mt-2">
-                        <button type="button" class="btn btn-secondary" onclick="${window.innerWidth <= 768 ? 'location.reload()' : `selectProduct('${productId}')`}" style="height: 38px; flex: 1;">Cancel</button>
+                        <button type="button" class="btn btn-secondary" onclick="selectProduct('${productId}')" style="height: 38px; flex: 1;">Cancel</button>
                         <button type="submit" class="btn btn-primary" style="height: 38px; flex: 1;">Update</button>
                     </div>
                 </form>
@@ -533,11 +557,13 @@ window.editProduct = function(productId) {
                 minStock: parseInt(document.getElementById('edit-product-min-stock').value) || 0,
                 category: document.getElementById('edit-product-category').value,
                 description: document.getElementById('edit-product-description').value,
+                barcode: [document.getElementById('edit-product-barcode').value, ...(window.editProductBarcodes || [])].filter(b => b).join('\n'),
                 brand: document.getElementById('edit-product-brand').value,
                 color: document.getElementById('edit-product-color').value,
                 size: document.getElementById('edit-product-size').value,
                 unit: document.getElementById('edit-product-unit').value,
                 vat: parseFloat(document.getElementById('edit-product-vat').value) || 0,
+                heroBanner: document.getElementById('edit-product-hero-banner').checked,
                 images: window.editUploadedImages || product.images || [],
                 updatedAt: new Date().toISOString()
             });
@@ -550,26 +576,89 @@ window.editProduct = function(productId) {
     });
 };
 
+// Toggle banner status
+window.toggleBanner = async function(productId) {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    try {
+        const newBannerStatus = !product.heroBanner;
+        
+        await updateDoc(doc(db, 'products', productId), {
+            heroBanner: newBannerStatus,
+            updatedAt: new Date().toISOString()
+        });
+        
+        showToast(`Product ${newBannerStatus ? 'added to' : 'removed from'} banner!`, 'success');
+        selectProduct(productId);
+    } catch (error) {
+        console.error('Error updating banner status:', error);
+        showToast('Error updating banner status: ' + error.message, 'error');
+    }
+};
+
 // Add stock
 window.addStock = async function(productId) {
-    const amount = prompt('Enter stock amount to add:');
-    if (amount && !isNaN(amount)) {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    document.getElementById('product-details-content').innerHTML = `
+        <div class="form-section">
+            <h3>Add Stock</h3>
+            <form id="add-stock-form">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Current Stock</label>
+                        <input type="number" class="form-control" value="${product.stock || 0}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">New Stock *</label>
+                        <input type="number" class="form-control" id="new-stock" min="0" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Note</label>
+                    <textarea class="form-control" id="stock-note" rows="2" placeholder="Source, cost, supplier details..."></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">Update Stock</button>
+                    <button type="button" class="btn btn-secondary" onclick="selectProduct('${productId}')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.getElementById('add-stock-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newStock = parseInt(document.getElementById('new-stock').value);
+        const note = document.getElementById('stock-note').value;
+        
         try {
-            const product = products.find(p => p.id === productId);
-            const newStock = (product.stock || 0) + parseInt(amount);
+            const stockHistory = product.stockHistory || [];
+            const difference = newStock - (product.stock || 0);
+            
+            stockHistory.push({
+                date: new Date().toISOString(),
+                oldStock: product.stock || 0,
+                newStock: newStock,
+                difference: difference,
+                note: note,
+                type: 'updated'
+            });
             
             await updateDoc(doc(db, 'products', productId), {
                 stock: newStock,
+                stockHistory: stockHistory,
                 updatedAt: new Date().toISOString()
             });
             
-            showToast(`Added ${amount} stock successfully!`, 'success');
-            selectProduct(productId); // Refresh product details
+            showToast('Stock updated successfully!', 'success');
+            selectProduct(productId);
         } catch (error) {
-            console.error('Error adding stock:', error);
-            showToast('Error adding stock: ' + error.message, 'error');
+            console.error('Error updating stock:', error);
+            showToast('Error updating stock: ' + error.message, 'error');
         }
-    }
+    });
 };
 
 // Delete product
@@ -579,8 +668,9 @@ window.deleteProduct = async function(productId) {
             await deleteDoc(doc(db, 'products', productId));
             showToast('Product deleted successfully!', 'success');
             
-            // Hide detail view
+            // Hide detail view and show no-selection
             document.getElementById('product-detail-view').style.display = 'none';
+            document.getElementById('no-selection').style.display = 'flex';
         } catch (error) {
             console.error('Error deleting product:', error);
             showToast('Error deleting product: ' + error.message, 'error');
@@ -590,7 +680,14 @@ window.deleteProduct = async function(productId) {
 
 // Show add product form
 function showAddProduct() {
-    // Show detail view and header
+    // Mobile: Show mobile add product modal
+    if (window.innerWidth <= 768) {
+        showMobileAddProduct();
+        return;
+    }
+    
+    // Hide no-selection and show detail view
+    document.getElementById('no-selection').style.display = 'none';
     document.getElementById('product-detail-view').style.display = 'flex';
     document.getElementById('detail-header').style.display = 'flex';
     
@@ -623,7 +720,7 @@ function showAddProduct() {
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Discount</label>
-                            <input type="number" class="form-control" id="product-discount" min="0" value="0">
+                            <input type="number" class="form-control" id="product-discount" min="0" step="0.1">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Discount Type</label>
@@ -635,22 +732,21 @@ function showAddProduct() {
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <span class="form-label d-block">Final Price (Inc. Tax)</span>
-                            <span class="h5 text-success" id="product-final-price">Final: ₹0.00</span>
-                        </div>
-                        <div class="col-md-6">
                             <label class="form-label">VAT %</label>
                             <select class="form-select" id="product-vat"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="h5 text-success" id="product-final-price">Final: ₹0.00</span>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Stock</label>
-                            <input type="number" class="form-control" id="product-stock" value="0">
+                            <input type="number" class="form-control" id="product-stock">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Min Stock</label>
-                            <input type="number" class="form-control" id="product-min-stock" value="0">
+                            <input type="number" class="form-control" id="product-min-stock">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -661,6 +757,13 @@ function showAddProduct() {
                     <div class="mb-3">
                         <label class="form-label">Description</label>
                         <textarea class="form-control" id="product-description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Barcode</label>
+                        <div class="d-flex">
+                            <input type="text" class="form-control me-2" id="product-barcode" placeholder="Primary barcode">
+                            <button type="button" class="btn btn-outline-secondary" onclick="openBarcodeManager('product')">More Barcodes</button>
+                        </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-3">
@@ -680,8 +783,14 @@ function showAddProduct() {
                             <select class="form-select" id="product-unit"></select>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="product-hero-banner">
+                            <label class="form-check-label" for="product-hero-banner">Hero Banner Product</label>
+                        </div>
+                    </div>
                     <button type="submit" class="btn btn-primary me-2">Add Product</button>
-                    <button type="button" class="btn btn-secondary" onclick="location.reload()">Cancel</button>
+                    <button type="button" class="btn btn-secondary" onclick="showNoSelection()">Cancel</button>
                 </form>
             </div>
         </div>
@@ -718,17 +827,19 @@ function showAddProduct() {
                 minStock: parseInt(document.getElementById('product-min-stock').value) || 0,
                 category: document.getElementById('product-category').value,
                 description: document.getElementById('product-description').value,
+                barcode: [document.getElementById('product-barcode').value, ...(window.productBarcodes || [])].filter(b => b).join('\n'),
                 brand: document.getElementById('product-brand').value,
                 color: document.getElementById('product-color').value,
                 size: document.getElementById('product-size').value,
                 unit: document.getElementById('product-unit').value,
                 vat: parseFloat(document.getElementById('product-vat').value) || 0,
+                heroBanner: document.getElementById('product-hero-banner').checked,
                 images: window.uploadedImages || [],
                 createdAt: new Date().toISOString()
             });
             
             showToast('Product added successfully!', 'success');
-            setTimeout(() => location.reload(), 1500);
+            setTimeout(() => showNoSelection(), 1500);
         } catch (error) {
             showToast('Error adding product: ' + error.message, 'error');
         }
@@ -881,6 +992,8 @@ function showMobileProductModal(product) {
             ${product.size ? `<div class="info-row"><label>Size:</label> <span>${product.size}</span></div>` : ''}
             ${product.unit ? `<div class="info-row"><label>Unit:</label> <span>${product.unit}</span></div>` : ''}
             ${product.vat ? `<div class="info-row"><label>VAT:</label> <span>${product.vat}%</span></div>` : ''}
+            ${product.barcode ? `<div class="info-row"><label>Barcodes:</label> <span>${product.barcode.replace(/\n/g, ', ')}</span></div>` : ''}
+            <div class="info-row"><label>Hero Banner:</label> <span>${product.heroBanner ? 'Yes' : 'No'}</span></div>
             <div class="info-row"><label>Description:</label> <span>${product.description || 'No description'}</span></div>
             ${product.createdAt ? `<div class="info-row"><label>Created:</label> <span>${new Date(product.createdAt).toLocaleDateString()}</span></div>` : ''}
             ${product.updatedAt ? `<div class="info-row"><label>Updated:</label> <span>${new Date(product.updatedAt).toLocaleDateString()}</span></div>` : ''}
@@ -888,9 +1001,16 @@ function showMobileProductModal(product) {
     `;
     
     // Setup mobile action buttons
+    const mobileToggleBannerBtn = document.getElementById('mobile-toggle-banner-btn');
+    mobileToggleBannerBtn.innerHTML = product.heroBanner ? '<i class="fas fa-star-half-alt me-1"></i>Remove Banner' : '<i class="fas fa-star me-1"></i>Add Banner';
+    mobileToggleBannerBtn.onclick = () => toggleBanner(product.id);
+    
+    document.getElementById('mobile-add-stock-btn').onclick = () => {
+        showMobileAddStock(product);
+    };
+    
     document.getElementById('mobile-edit-product-btn').onclick = () => {
-        closeMobileProductModal();
-        editProduct(product.id);
+        showMobileEditProduct(product);
     };
     document.getElementById('mobile-delete-product-btn').onclick = () => deleteProduct(product.id);
     
@@ -900,6 +1020,437 @@ function showMobileProductModal(product) {
 // Close mobile product modal
 window.closeMobileProductModal = function() {
     document.getElementById('mobile-product-modal').style.display = 'none';
+};
+
+// Mobile add product
+function showMobileAddProduct() {
+    document.getElementById('mobile-product-title').innerHTML = '<button class="btn btn-link p-0 me-2" onclick="closeMobileProductModal()"><i class="fas fa-arrow-left"></i></button>Add New Product';
+    document.getElementById('mobile-product-content').innerHTML = `
+        <form id="mobile-add-product-form">
+            <div class="mb-3">
+                <label class="form-label">Product Name *</label>
+                <input type="text" class="form-control" id="mobile-product-name" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Category</label>
+                <select class="form-select" id="mobile-product-category"></select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Price *</label>
+                <input type="number" class="form-control" id="mobile-product-price" step="0.01" required>
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Discount</label>
+                    <input type="number" class="form-control" id="mobile-product-discount" min="0" step="0.1">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Discount Type</label>
+                    <select class="form-select" id="mobile-product-discount-type">
+                        <option value="percentage">Percentage</option>
+                        <option value="fixed">Fixed Amount</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">VAT %</label>
+                <select class="form-select" id="mobile-product-vat"></select>
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Stock</label>
+                    <input type="number" class="form-control" id="mobile-product-stock">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Min Stock</label>
+                    <input type="number" class="form-control" id="mobile-product-min-stock">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Barcode</label>
+                <input type="text" class="form-control" id="mobile-product-barcode" placeholder="Primary barcode">
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Brand</label>
+                    <select class="form-select" id="mobile-product-brand"></select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Color</label>
+                    <select class="form-select" id="mobile-product-color"></select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Size</label>
+                    <select class="form-select" id="mobile-product-size"></select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Unit</label>
+                    <select class="form-select" id="mobile-product-unit"></select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" id="mobile-product-description" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="mobile-product-hero-banner">
+                    <label class="form-check-label" for="mobile-product-hero-banner">Hero Banner Product</label>
+                </div>
+            </div>
+        </form>
+    `;
+    
+    // Populate dropdowns
+    populateDropdown('mobile-product-category', productAttributes.categories);
+    populateDropdown('mobile-product-brand', productAttributes.brands);
+    populateDropdown('mobile-product-color', productAttributes.colors);
+    populateDropdown('mobile-product-size', productAttributes.sizes);
+    populateDropdown('mobile-product-unit', productAttributes.units);
+    populateDropdown('mobile-product-vat', productAttributes.vatRates);
+    
+    // Update footer buttons
+    document.querySelector('.mobile-modal-footer').innerHTML = `
+        <div class="d-flex gap-2">
+            <button class="btn btn-secondary flex-fill" onclick="closeMobileProductModal()">Cancel</button>
+            <button class="btn btn-primary flex-fill" onclick="saveMobileProduct()">Save Product</button>
+        </div>
+    `;
+    
+    document.getElementById('mobile-product-modal').style.display = 'flex';
+}
+
+// Save mobile product
+window.saveMobileProduct = async function() {
+    try {
+        await addDoc(collection(db, 'products'), {
+            name: document.getElementById('mobile-product-name').value,
+            category: document.getElementById('mobile-product-category').value,
+            price: parseFloat(document.getElementById('mobile-product-price').value),
+            discount: parseFloat(document.getElementById('mobile-product-discount').value) || 0,
+            discountType: document.getElementById('mobile-product-discount-type').value,
+            vat: parseFloat(document.getElementById('mobile-product-vat').value) || 0,
+            stock: parseInt(document.getElementById('mobile-product-stock').value) || 0,
+            minStock: parseInt(document.getElementById('mobile-product-min-stock').value) || 0,
+            barcode: document.getElementById('mobile-product-barcode').value,
+            brand: document.getElementById('mobile-product-brand').value,
+            color: document.getElementById('mobile-product-color').value,
+            size: document.getElementById('mobile-product-size').value,
+            unit: document.getElementById('mobile-product-unit').value,
+            description: document.getElementById('mobile-product-description').value,
+            heroBanner: document.getElementById('mobile-product-hero-banner').checked,
+            createdAt: new Date().toISOString()
+        });
+        
+        showToast('Product added successfully!', 'success');
+        closeMobileProductModal();
+    } catch (error) {
+        showToast('Error adding product: ' + error.message, 'error');
+    }
+};
+
+// Mobile edit product
+function showMobileEditProduct(product) {
+    document.getElementById('mobile-product-title').innerHTML = '<button class="btn btn-link p-0 me-2" onclick="showMobileProductModal(window.selectedProduct)"><i class="fas fa-arrow-left"></i></button>Edit Product';
+    document.getElementById('mobile-product-content').innerHTML = `
+        <form id="mobile-edit-product-form">
+            <div class="mb-3">
+                <label class="form-label">Product Name *</label>
+                <input type="text" class="form-control" id="mobile-edit-product-name" value="${product.name}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Category</label>
+                <select class="form-select" id="mobile-edit-product-category"></select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Price *</label>
+                <input type="number" class="form-control" id="mobile-edit-product-price" step="0.01" value="${product.price}" required>
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Discount</label>
+                    <input type="number" class="form-control" id="mobile-edit-product-discount" min="0" step="0.1" value="${product.discount || ''}">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Discount Type</label>
+                    <select class="form-select" id="mobile-edit-product-discount-type">
+                        <option value="percentage" ${product.discountType === 'percentage' ? 'selected' : ''}>Percentage</option>
+                        <option value="fixed" ${product.discountType === 'fixed' ? 'selected' : ''}>Fixed Amount</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">VAT %</label>
+                <select class="form-select" id="mobile-edit-product-vat"></select>
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Stock</label>
+                    <input type="number" class="form-control" id="mobile-edit-product-stock" value="${product.stock || 0}">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Min Stock</label>
+                    <input type="number" class="form-control" id="mobile-edit-product-min-stock" value="${product.minStock || 0}">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Barcode</label>
+                <input type="text" class="form-control" id="mobile-edit-product-barcode" value="${product.barcode ? product.barcode.split('\n')[0] || '' : ''}" placeholder="Primary barcode">
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Brand</label>
+                    <select class="form-select" id="mobile-edit-product-brand"></select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Color</label>
+                    <select class="form-select" id="mobile-edit-product-color"></select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Size</label>
+                    <select class="form-select" id="mobile-edit-product-size"></select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Unit</label>
+                    <select class="form-select" id="mobile-edit-product-unit"></select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" id="mobile-edit-product-description" rows="3">${product.description || ''}</textarea>
+            </div>
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="mobile-edit-product-hero-banner" ${product.heroBanner ? 'checked' : ''}>
+                    <label class="form-check-label" for="mobile-edit-product-hero-banner">Hero Banner Product</label>
+                </div>
+            </div>
+        </form>
+    `;
+    
+    // Populate dropdowns with current values
+    populateDropdown('mobile-edit-product-category', productAttributes.categories, product.category);
+    populateDropdown('mobile-edit-product-brand', productAttributes.brands, product.brand);
+    populateDropdown('mobile-edit-product-color', productAttributes.colors, product.color);
+    populateDropdown('mobile-edit-product-size', productAttributes.sizes, product.size);
+    populateDropdown('mobile-edit-product-unit', productAttributes.units, product.unit);
+    populateDropdown('mobile-edit-product-vat', productAttributes.vatRates, product.vat);
+    
+    // Update footer buttons
+    document.querySelector('.mobile-modal-footer').innerHTML = `
+        <div class="d-flex gap-2">
+            <button class="btn btn-secondary flex-fill" onclick="showMobileProductModal(window.selectedProduct)">Cancel</button>
+            <button class="btn btn-primary flex-fill" onclick="saveMobileEditProduct('${product.id}')">Update Product</button>
+        </div>
+    `;
+    
+    document.getElementById('mobile-product-modal').style.display = 'flex';
+}
+
+// Save mobile edit product
+window.saveMobileEditProduct = async function(productId) {
+    try {
+        await updateDoc(doc(db, 'products', productId), {
+            name: document.getElementById('mobile-edit-product-name').value,
+            category: document.getElementById('mobile-edit-product-category').value,
+            price: parseFloat(document.getElementById('mobile-edit-product-price').value),
+            discount: parseFloat(document.getElementById('mobile-edit-product-discount').value) || 0,
+            discountType: document.getElementById('mobile-edit-product-discount-type').value,
+            vat: parseFloat(document.getElementById('mobile-edit-product-vat').value) || 0,
+            stock: parseInt(document.getElementById('mobile-edit-product-stock').value) || 0,
+            minStock: parseInt(document.getElementById('mobile-edit-product-min-stock').value) || 0,
+            barcode: document.getElementById('mobile-edit-product-barcode').value,
+            brand: document.getElementById('mobile-edit-product-brand').value,
+            color: document.getElementById('mobile-edit-product-color').value,
+            size: document.getElementById('mobile-edit-product-size').value,
+            unit: document.getElementById('mobile-edit-product-unit').value,
+            description: document.getElementById('mobile-edit-product-description').value,
+            heroBanner: document.getElementById('mobile-edit-product-hero-banner').checked,
+            updatedAt: new Date().toISOString()
+        });
+        
+        showToast('Product updated successfully!', 'success');
+        const product = products.find(p => p.id === productId);
+        showMobileProductModal(product);
+    } catch (error) {
+        showToast('Error updating product: ' + error.message, 'error');
+    }
+};
+
+// Mobile add stock
+function showMobileAddStock(product) {
+    document.getElementById('mobile-product-title').innerHTML = '<button class="btn btn-link p-0 me-2" onclick="showMobileProductModal(window.selectedProduct)"><i class="fas fa-arrow-left"></i></button>Update Stock';
+    document.getElementById('mobile-product-content').innerHTML = `
+        <form id="mobile-add-stock-form">
+            <div class="mb-3">
+                <label class="form-label">Current Stock</label>
+                <input type="number" class="form-control" value="${product.stock || 0}" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">New Stock *</label>
+                <input type="number" class="form-control" id="mobile-new-stock" min="0" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Note</label>
+                <textarea class="form-control" id="mobile-stock-note" rows="2" placeholder="Source, cost, supplier details..."></textarea>
+            </div>
+        </form>
+    `;
+    
+    // Update footer buttons
+    document.querySelector('.mobile-modal-footer').innerHTML = `
+        <div class="d-flex gap-2">
+            <button class="btn btn-secondary flex-fill" onclick="showMobileProductModal(window.selectedProduct)">Cancel</button>
+            <button class="btn btn-success flex-fill" onclick="saveMobileStock('${product.id}')">Update Stock</button>
+        </div>
+    `;
+    
+    document.getElementById('mobile-product-modal').style.display = 'flex';
+}
+
+// Save mobile stock
+window.saveMobileStock = async function(productId) {
+    try {
+        const product = products.find(p => p.id === productId);
+        const newStock = parseInt(document.getElementById('mobile-new-stock').value);
+        const note = document.getElementById('mobile-stock-note').value;
+        
+        const stockHistory = product.stockHistory || [];
+        const difference = newStock - (product.stock || 0);
+        
+        stockHistory.push({
+            date: new Date().toISOString(),
+            oldStock: product.stock || 0,
+            newStock: newStock,
+            difference: difference,
+            note: note,
+            type: 'updated'
+        });
+        
+        await updateDoc(doc(db, 'products', productId), {
+            stock: newStock,
+            stockHistory: stockHistory,
+            updatedAt: new Date().toISOString()
+        });
+        
+        showToast('Stock updated successfully!', 'success');
+        const updatedProduct = products.find(p => p.id === productId);
+        showMobileProductModal(updatedProduct);
+    } catch (error) {
+        showToast('Error updating stock: ' + error.message, 'error');
+    }
+};
+
+// Show no selection state
+function showNoSelection() {
+    document.getElementById('product-detail-view').style.display = 'none';
+    document.getElementById('no-selection').style.display = 'flex';
+    
+    // Remove active class from all items
+    document.querySelectorAll('.chat-item').forEach(item => {
+        item.classList.remove('active');
+    });
+}
+
+// Make showNoSelection available globally
+window.showNoSelection = showNoSelection;
+
+// Barcode management
+window.productBarcodes = [];
+window.editProductBarcodes = [];
+window.currentBarcodeType = '';
+
+window.openBarcodeManager = function(type) {
+    window.currentBarcodeType = type;
+    const primaryBarcode = document.getElementById(type + '-barcode').value;
+    const additionalBarcodes = type === 'product' ? window.productBarcodes : window.editProductBarcodes;
+    
+    // Initialize edit barcodes from product data if needed
+    if (type === 'edit-product' && window.editProductBarcodes.length === 0) {
+        const product = window.selectedProduct;
+        if (product && product.barcode) {
+            const allBarcodes = product.barcode.split('\n').filter(b => b);
+            window.editProductBarcodes = allBarcodes.slice(1); // Skip first (primary)
+        }
+    }
+    
+    const allBarcodes = [primaryBarcode, ...additionalBarcodes].filter(b => b);
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage Barcodes</h5>
+                    <button type="button" class="btn-close" onclick="closeBarcodeManager()"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="new-barcode-input" placeholder="Add new barcode">
+                        <button type="button" class="btn btn-success mt-2" onclick="addNewBarcode()">Add Barcode</button>
+                    </div>
+                    <div id="barcode-list">
+                        ${allBarcodes.map((barcode, index) => `
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                                <input type="text" class="form-control me-2" value="${barcode}" onchange="updateBarcode(${index}, this.value)">
+                                <button type="button" class="btn btn-sm btn-danger" onclick="deleteBarcode(${index})"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="closeBarcodeManager()">Done</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.style.display = 'block';
+    modal.classList.add('show');
+};
+
+window.closeBarcodeManager = function() {
+    const modal = document.querySelector('.modal.fade');
+    if (modal) modal.remove();
+};
+
+window.addNewBarcode = function() {
+    const input = document.getElementById('new-barcode-input');
+    const barcode = input.value.trim();
+    if (barcode) {
+        if (window.currentBarcodeType === 'product') {
+            window.productBarcodes.push(barcode);
+        } else {
+            window.editProductBarcodes.push(barcode);
+        }
+        input.value = '';
+        openBarcodeManager(window.currentBarcodeType);
+    }
+};
+
+window.updateBarcode = function(index, value) {
+    if (index === 0) {
+        document.getElementById(window.currentBarcodeType + '-barcode').value = value;
+    } else {
+        const barcodes = window.currentBarcodeType === 'product' ? window.productBarcodes : window.editProductBarcodes;
+        barcodes[index - 1] = value;
+    }
+};
+
+window.deleteBarcode = function(index) {
+    if (index === 0) {
+        document.getElementById(window.currentBarcodeType + '-barcode').value = '';
+    } else {
+        const barcodes = window.currentBarcodeType === 'product' ? window.productBarcodes : window.editProductBarcodes;
+        barcodes.splice(index - 1, 1);
+    }
+    openBarcodeManager(window.currentBarcodeType);
 };
 
 // Debug function

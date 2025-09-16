@@ -478,3 +478,30 @@
         display: none;
     }
 }
+/* Product Detail View Specific Styles */
+.product-detail-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-detail-view .detail-header {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #f8f9fa;
+}
+
+.product-detail-view .detail-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+/* Button Height Consistency */
+.header-actions .btn {
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+}

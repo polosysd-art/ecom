@@ -25,27 +25,12 @@ export function loadPageContent() {
 
 // Update page content
 function updatePageContent(data) {
-    // Update hero section
-    if (data.heroTitle) {
-        const heroTitle = document.getElementById('hero-title');
-        if (heroTitle) heroTitle.textContent = data.heroTitle;
-    }
-    
-    if (data.heroSubtitle) {
-        const heroSubtitle = document.getElementById('hero-subtitle');
-        if (heroSubtitle) heroSubtitle.textContent = data.heroSubtitle;
-    }
-    
-    // Hero image is loaded separately in updateHeroImage function
-    
-
-    
     // Update animated title
     if (data.animatedTitle) {
         const animatedTitle = document.getElementById('animated-title');
         if (animatedTitle) {
-            animatedTitle.textContent = '';
-            animatedTitle.style.display = 'none';
+            animatedTitle.textContent = data.animatedTitle;
+            animatedTitle.style.display = 'block';
         }
     }
     
@@ -62,23 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Update hero image function
 function updateHeroImage(heroImageUrl) {
-    const heroBannerImg = document.getElementById('hero-banner-img');
     const heroSection = document.getElementById('hero-section');
-    
-    if (heroBannerImg && heroImageUrl) {
-        heroBannerImg.onload = () => {
-            heroBannerImg.style.display = 'block';
-            if (heroSection) heroSection.style.background = 'none';
-        };
-        heroBannerImg.onerror = () => {
-            console.error('Failed to load hero image:', heroImageUrl);
-            heroBannerImg.style.display = 'none';
-            if (heroSection) heroSection.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        };
-        heroBannerImg.src = heroImageUrl;
-    } else if (heroBannerImg && heroSection) {
-        heroBannerImg.style.display = 'none';
-        heroSection.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    if (heroSection && heroImageUrl) {
+        heroSection.style.backgroundImage = `url(${heroImageUrl})`;
+        heroSection.style.backgroundSize = 'cover';
+        heroSection.style.backgroundPosition = 'center';
     }
 }
 

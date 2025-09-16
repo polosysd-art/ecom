@@ -14,14 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load currency setting
 function loadCurrency() {
     try {
-        const unsubscribe = onSnapshot(doc(db, 'settings', 'pages'), (doc) => {
+        onSnapshot(doc(db, 'settings', 'currency'), (doc) => {
             if (doc.exists()) {
-                const data = doc.data();
-                window.storeCurrency = data.currency || '₹';
-                // Re-render products if currency changes
-                if (products.length > 0) {
-                    renderProducts();
-                }
+                window.storeCurrency = doc.data().symbol || '₹';
+            } else {
+                window.storeCurrency = '₹';
+            }
+            // Re-render products if currency changes
+            if (products.length > 0) {
+                renderProducts();
             }
         });
     } catch (error) {
@@ -31,26 +32,29 @@ function loadCurrency() {
 }
 
 // Load products with real-time updates
-function loadProducts() {
+async function loadProducts() {
     try {
-        const unsubscribe = onSnapshot(collection(db, 'products'), (querySnapshot) => {
+        // First try to get products once
+        const querySnapshot = await getDocs(collection(db, 'products'));
+        products = [];
+        querySnapshot.forEach((doc) => {
+            products.push({ id: doc.id, ...doc.data() });
+        });
+        renderProducts();
+        
+        // Then set up real-time listener
+        onSnapshot(collection(db, 'products'), (querySnapshot) => {
             products = [];
             querySnapshot.forEach((doc) => {
                 products.push({ id: doc.id, ...doc.data() });
             });
             renderProducts();
-        }, (error) => {
-            console.error('Error loading products:', error);
-            const grid = document.getElementById('products-grid');
-            if (grid) {
-                grid.innerHTML = `<p>Error loading products: ${error.message}</p>`;
-            }
         });
     } catch (error) {
-        console.error('Error setting up products listener:', error);
+        console.error('Error loading products:', error);
         const grid = document.getElementById('products-grid');
         if (grid) {
-            grid.innerHTML = `<p>Error connecting to database: ${error.message}</p>`;
+            grid.innerHTML = '<div class="col-12 text-center"><p>Unable to load products. Please refresh the page.</p></div>';
         }
     }
 }
@@ -130,30 +134,19 @@ let heroSliderInterval;
 // Load hero products
 function loadHeroProducts() {
     try {
-        onSnapshot(doc(db, 'settings', 'pages'), (settingsDoc) => {
-            if (settingsDoc.exists()) {
-                const heroProductIds = settingsDoc.data().heroProducts || [];
-                if (heroProductIds.length > 0) {
-                    loadSelectedHeroProducts(heroProductIds);
+        onSnapshot(collection(db, 'products'), (querySnapshot) => {
+            heroProductsData = [];
+            querySnapshot.forEach((doc) => {
+                const product = doc.data();
+                if (product.heroBanner) {
+                    heroProductsData.push({ id: doc.id, ...product });
                 }
-            }
+            });
+            startHeroSlider();
         });
     } catch (error) {
         console.error('Error loading hero products:', error);
     }
-}
-
-// Load selected hero products
-function loadSelectedHeroProducts(heroProductIds) {
-    onSnapshot(collection(db, 'products'), (querySnapshot) => {
-        heroProductsData = [];
-        querySnapshot.forEach((doc) => {
-            if (heroProductIds.includes(doc.id)) {
-                heroProductsData.push({ id: doc.id, ...doc.data() });
-            }
-        });
-        startHeroSlider();
-    });
 }
 
 

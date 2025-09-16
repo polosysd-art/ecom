@@ -184,6 +184,32 @@
         .attribute-item:hover {
             background: #e9ecef;
         }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                margin-top: 56px;
+            }
+            .container-fluid {
+                padding: 10px !important;
+            }
+            .row.g-4 {
+                margin: 0 !important;
+            }
+            .col-md-6, .col-lg-4 {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 0 15px 0 !important;
+            }
+            .card {
+                margin-bottom: 15px;
+            }
+            .card-header h5 {
+                font-size: 1rem;
+            }
+            .attribute-list {
+                max-height: 200px;
+            }
+        }
     </style>
 
     <script type="module" src="navigation.js"></script>
