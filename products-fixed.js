@@ -38,39 +38,70 @@ async function loadProductAttributes() {
 // Populate dropdown with attributes and add new option
 function populateDropdown(elementId, options, selectedValue = '') {
     const element = document.getElementById(elementId);
-    if (!element) return;
+    if (!element) {
+        console.log(`DEBUG: Element ${elementId} not found`);
+        return;
+    }
+    
+    // Store current value if element already has one
+    const currentValue = element.value || selectedValue;
+    console.log(`DEBUG: Populating ${elementId} with options:`, options, 'currentValue:', currentValue);
     
     // Set default VAT if it's a VAT field and no value selected
-    if (elementId.includes('vat') && !selectedValue && productAttributes.defaultVat) {
+    if (elementId.includes('vat') && !currentValue && productAttributes.defaultVat) {
         selectedValue = productAttributes.defaultVat;
     }
     
     element.innerHTML = '<option value="">Select...</option>';
     options.forEach(option => {
-        const selected = option == selectedValue ? 'selected' : '';
+        const selected = option == currentValue ? 'selected' : '';
         element.innerHTML += `<option value="${option}" ${selected}>${option}</option>`;
     });
     element.innerHTML += '<option value="ADD_NEW">+ Add New</option>';
     
+    // Remove existing event listeners to prevent duplicates
+    const newElement = element.cloneNode(true);
+    element.parentNode.replaceChild(newElement, element);
+    
     // Add event listener for "Add New" option
-    element.addEventListener('change', async function() {
+    newElement.addEventListener('change', async function() {
         if (this.value === 'ADD_NEW') {
-            const fieldName = this.id.replace('product-', '').replace('edit-product-', '');
+            let fieldName = this.id;
+            // Handle all possible prefixes for mobile and desktop
+            fieldName = fieldName.replace('mobile-edit-product-', '').replace('mobile-product-', '').replace('edit-product-', '').replace('product-', '');
+            console.log(`DEBUG: After prefix removal, fieldName: ${fieldName} from elementId: ${this.id}`);
+            console.log(`DEBUG: Final fieldName: ${fieldName}`);
             const newValue = prompt(`Enter new ${fieldName}:`);
             if (newValue && newValue.trim()) {
                 const trimmedValue = newValue.trim();
                 
-                // Add to current dropdown
-                const newOption = document.createElement('option');
-                newOption.value = trimmedValue;
-                newOption.textContent = trimmedValue;
-                newOption.selected = true;
-                this.insertBefore(newOption, this.lastElementChild);
-                
-                // Save to product settings
+                // Save to product settings first
                 await saveNewAttribute(fieldName, trimmedValue);
+                
+                // Repopulate this specific dropdown with updated options
+                const fieldMap = {
+                    'category': 'categories',
+                    'brand': 'brands', 
+                    'color': 'colors',
+                    'size': 'sizes',
+                    'unit': 'units',
+                    'vat': 'vatRates'
+                };
+                const dbField = fieldMap[fieldName] || fieldName;
+                const updatedOptions = productAttributes[dbField] || [];
+                
+                // Clear and repopulate dropdown
+                this.innerHTML = '<option value="">Select...</option>';
+                updatedOptions.forEach(option => {
+                    const selected = option == trimmedValue ? 'selected' : '';
+                    this.innerHTML += `<option value="${option}" ${selected}>${option}</option>`;
+                });
+                this.innerHTML += '<option value="ADD_NEW">+ Add New</option>';
+                
+                // Set the new value as selected
+                this.value = trimmedValue;
             } else {
-                this.value = selectedValue || '';
+                this.value = currentValue || '';
             }
         }
     });
@@ -79,6 +110,8 @@ function populateDropdown(elementId, options, selectedValue = '') {
 // Save new attribute to product settings
 async function saveNewAttribute(attributeType, value) {
     try {
+        console.log(`DEBUG: Saving new attribute - type: ${attributeType}, value: ${value}`);
+        
         const settingsDoc = await getDoc(doc(db, 'settings', 'attributes'));
         let attributes = { categories: [], brands: [], colors: [], sizes: [], units: [], vatRates: [] };
         
@@ -95,6 +128,7 @@ async function saveNewAttribute(attributeType, value) {
         };
         
         const dbField = fieldMap[attributeType] || attributeType;
+        console.log(`DEBUG: Mapped ${attributeType} to ${dbField}`);
         
         if (!attributes[dbField]) {
             attributes[dbField] = [];
@@ -102,10 +136,20 @@ async function saveNewAttribute(attributeType, value) {
         
         if (!attributes[dbField].includes(value)) {
             attributes[dbField].push(value);
-            await setDoc(doc(db, 'settings', 'attributes'), attributes);
+            console.log(`DEBUG: Added ${value} to ${dbField}. New array:`, attributes[dbField]);
             
-            // Update local productAttributes
-            productAttributes[dbField].push(value);
+            await setDoc(doc(db, 'settings', 'attributes'), attributes);
+            console.log(`DEBUG: Saved to database`);
+            
+            // Update local productAttributes immediately
+            productAttributes[dbField] = attributes[dbField];
+            console.log(`DEBUG: Updated local productAttributes[${dbField}]:`, productAttributes[dbField]);
+            
+            // Reload attributes to ensure all forms are updated
+            await loadProductAttributes();
+            console.log(`DEBUG: Reloaded product attributes`);
+        } else {
+            console.log(`DEBUG: Value ${value} already exists in ${dbField}`);
         }
     } catch (error) {
         console.error('Error saving new attribute:', error);
@@ -1072,6 +1116,9 @@ function showMobileAddProduct() {
                 <label class="form-label">VAT %</label>
                 <select class="form-select" id="mobile-product-vat"></select>
             </div>
+            <div class="mb-3">
+                <span class="h5 text-success" id="mobile-product-final-price">Final: ₹0.00</span>
+            </div>
             <div class="row mb-3">
                 <div class="col-6">
                     <label class="form-label">Stock</label>
@@ -1081,6 +1128,11 @@ function showMobileAddProduct() {
                     <label class="form-label">Min Stock</label>
                     <input type="number" class="form-control" id="mobile-product-min-stock">
                 </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Product Images</label>
+                <input type="file" class="form-control" id="mobile-product-images" accept="image/*" multiple>
+                <div class="mt-2" id="mobile-product-image-preview"></div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Barcode</label>
@@ -1127,6 +1179,16 @@ function showMobileAddProduct() {
     populateDropdown('mobile-product-unit', productAttributes.units);
     populateDropdown('mobile-product-vat', productAttributes.vatRates);
     
+    // Setup image preview
+    document.getElementById('mobile-product-images').addEventListener('change', function() {
+        previewImages(this, 'mobile-product-image-preview');
+    });
+    
+    // Setup price calculation
+    setTimeout(() => {
+        setupPriceCalculation('mobile-product-price', 'mobile-product-discount', 'mobile-product-discount-type', 'mobile-product-final-price');
+    }, 100);
+    
     // Update footer buttons
     document.querySelector('.mobile-modal-footer').innerHTML = `
         <div class="d-flex gap-2">
@@ -1157,6 +1219,7 @@ window.saveMobileProduct = async function() {
             unit: document.getElementById('mobile-product-unit').value,
             description: document.getElementById('mobile-product-description').value,
             heroBanner: document.getElementById('mobile-product-hero-banner').checked,
+            images: window.uploadedImages || [],
             createdAt: new Date().toISOString()
         });
         
@@ -1201,6 +1264,9 @@ function showMobileEditProduct(product) {
                 <label class="form-label">VAT %</label>
                 <select class="form-select" id="mobile-edit-product-vat"></select>
             </div>
+            <div class="mb-3">
+                <span class="h5 text-success" id="mobile-edit-product-final-price">Final: ₹0.00</span>
+            </div>
             <div class="row mb-3">
                 <div class="col-6">
                     <label class="form-label">Stock</label>
@@ -1210,6 +1276,11 @@ function showMobileEditProduct(product) {
                     <label class="form-label">Min Stock</label>
                     <input type="number" class="form-control" id="mobile-edit-product-min-stock" value="${product.minStock || 0}">
                 </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Product Images</label>
+                <input type="file" class="form-control" id="mobile-edit-product-images" accept="image/*" multiple>
+                <div class="mt-2" id="mobile-edit-product-image-preview"></div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Barcode</label>
@@ -1256,6 +1327,20 @@ function showMobileEditProduct(product) {
     populateDropdown('mobile-edit-product-unit', productAttributes.units, product.unit);
     populateDropdown('mobile-edit-product-vat', productAttributes.vatRates, product.vat);
     
+    // Setup image preview with existing images
+    if (product.images && product.images.length > 0) {
+        showExistingImages(product.images, 'mobile-edit-product-image-preview');
+    }
+    
+    document.getElementById('mobile-edit-product-images').addEventListener('change', function() {
+        previewImages(this, 'mobile-edit-product-image-preview');
+    });
+    
+    // Setup price calculation
+    setTimeout(() => {
+        setupPriceCalculation('mobile-edit-product-price', 'mobile-edit-product-discount', 'mobile-edit-product-discount-type', 'mobile-edit-product-final-price');
+    }, 100);
+    
     // Update footer buttons
     document.querySelector('.mobile-modal-footer').innerHTML = `
         <div class="d-flex gap-2">
@@ -1286,6 +1371,7 @@ window.saveMobileEditProduct = async function(productId) {
             unit: document.getElementById('mobile-edit-product-unit').value,
             description: document.getElementById('mobile-edit-product-description').value,
             heroBanner: document.getElementById('mobile-edit-product-hero-banner').checked,
+            images: window.editUploadedImages || product.images || [],
             updatedAt: new Date().toISOString()
         });
         

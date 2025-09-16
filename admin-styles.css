@@ -505,3 +505,30 @@
     display: inline-flex;
     align-items: center;
 }
+/* Mobile form font size increase */
+@media (max-width: 768px) {
+    .mobile-modal .form-label {
+        font-size: 16px !important;
+        font-weight: 500;
+    }
+    
+    .mobile-modal .form-control,
+    .mobile-modal .form-select {
+        font-size: 16px !important;
+        padding: 12px !important;
+    }
+    
+    .mobile-modal textarea.form-control {
+        font-size: 16px !important;
+        padding: 12px !important;
+    }
+    
+    .mobile-modal .form-check-label {
+        font-size: 16px !important;
+    }
+    
+    .mobile-modal .btn {
+        font-size: 16px !important;
+        padding: 12px 16px !important;
+    }
+}

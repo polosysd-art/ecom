@@ -9,9 +9,22 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAttributes();
 });
 
-// Load attributes from Firebase
+// Load attributes from Firebase with real-time updates
 async function loadAttributes() {
     try {
+        const { onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+        
+        // Set up real-time listener
+        onSnapshot(doc(db, 'settings', 'attributes'), (doc) => {
+            if (doc.exists()) {
+                attributes = { ...attributes, ...doc.data() };
+                renderAllAttributes();
+            }
+        }, (error) => {
+            console.error('Error in attributes listener:', error);
+        });
+        
+        // Initial load
         const settingsDoc = await getDoc(doc(db, 'settings', 'attributes'));
         if (settingsDoc.exists()) {
             attributes = { ...attributes, ...settingsDoc.data() };
