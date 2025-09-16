@@ -968,6 +968,10 @@ document.head.appendChild(style);
 // Show mobile product modal
 function showMobileProductModal(product) {
     window.selectedProduct = product;
+    // Clear any existing content
+    document.getElementById('mobile-product-content').innerHTML = '';
+    document.querySelector('.mobile-modal-footer').innerHTML = '';
+    
     document.getElementById('mobile-product-title').textContent = product.name;
     
     const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType, product.vat);
@@ -997,6 +1001,18 @@ function showMobileProductModal(product) {
             <div class="info-row"><label>Description:</label> <span>${product.description || 'No description'}</span></div>
             ${product.createdAt ? `<div class="info-row"><label>Created:</label> <span>${new Date(product.createdAt).toLocaleDateString()}</span></div>` : ''}
             ${product.updatedAt ? `<div class="info-row"><label>Updated:</label> <span>${new Date(product.updatedAt).toLocaleDateString()}</span></div>` : ''}
+        </div>
+    `;
+    
+    // Reset footer to product details buttons
+    document.querySelector('.mobile-modal-footer').innerHTML = `
+        <div class="d-flex gap-2 mb-2">
+            <button class="btn btn-warning flex-fill" id="mobile-toggle-banner-btn"><i class="fas fa-star me-1"></i>Banner</button>
+            <button class="btn btn-success flex-fill" id="mobile-add-stock-btn"><i class="fas fa-plus me-1"></i>Stock</button>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary flex-fill" id="mobile-edit-product-btn"><i class="fas fa-edit me-1"></i>Edit</button>
+            <button class="btn btn-danger" id="mobile-delete-product-btn"><i class="fas fa-trash"></i></button>
         </div>
     `;
     
@@ -1243,7 +1259,7 @@ function showMobileEditProduct(product) {
     // Update footer buttons
     document.querySelector('.mobile-modal-footer').innerHTML = `
         <div class="d-flex gap-2">
-            <button class="btn btn-secondary flex-fill" onclick="showMobileProductModal(window.selectedProduct)">Cancel</button>
+            <button class="btn btn-secondary flex-fill" onclick="cancelMobileEdit('${product.id}')">Cancel</button>
             <button class="btn btn-primary flex-fill" onclick="saveMobileEditProduct('${product.id}')">Update Product</button>
         </div>
     `;
@@ -1274,8 +1290,11 @@ window.saveMobileEditProduct = async function(productId) {
         });
         
         showToast('Product updated successfully!', 'success');
-        const product = products.find(p => p.id === productId);
-        showMobileProductModal(product);
+        // Wait for products to update, then show modal
+        setTimeout(() => {
+            const updatedProduct = products.find(p => p.id === productId);
+            showMobileProductModal(updatedProduct);
+        }, 500);
     } catch (error) {
         showToast('Error updating product: ' + error.message, 'error');
     }
@@ -1304,7 +1323,7 @@ function showMobileAddStock(product) {
     // Update footer buttons
     document.querySelector('.mobile-modal-footer').innerHTML = `
         <div class="d-flex gap-2">
-            <button class="btn btn-secondary flex-fill" onclick="showMobileProductModal(window.selectedProduct)">Cancel</button>
+            <button class="btn btn-secondary flex-fill" onclick="cancelMobileStock('${product.id}')">Cancel</button>
             <button class="btn btn-success flex-fill" onclick="saveMobileStock('${product.id}')">Update Stock</button>
         </div>
     `;
@@ -1338,10 +1357,28 @@ window.saveMobileStock = async function(productId) {
         });
         
         showToast('Stock updated successfully!', 'success');
-        const updatedProduct = products.find(p => p.id === productId);
-        showMobileProductModal(updatedProduct);
+        setTimeout(() => {
+            const updatedProduct = products.find(p => p.id === productId);
+            showMobileProductModal(updatedProduct);
+        }, 500);
     } catch (error) {
         showToast('Error updating stock: ' + error.message, 'error');
+    }
+};
+
+// Cancel mobile edit
+window.cancelMobileEdit = function(productId) {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+        showMobileProductModal(product);
+    }
+};
+
+// Cancel mobile stock
+window.cancelMobileStock = function(productId) {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+        showMobileProductModal(product);
     }
 };
 
