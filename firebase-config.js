@@ -14,7 +14,16 @@ import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase
 import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
 import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js';
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-export const storage = getStorage(app);
+let app, db, auth, storage;
+
+try {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    auth = getAuth(app);
+    storage = getStorage(app);
+} catch (error) {
+    console.error('Firebase initialization failed:', error);
+    throw new Error('Failed to initialize Firebase. Please check your configuration.');
+}
+
+export { db, auth, storage };

@@ -161,71 +161,51 @@ function loadSelectedHeroProducts(heroProductIds) {
 // Start hero slider
 function startHeroSlider() {
     if (heroProductsData.length === 0) return;
-    
-    clearInterval(heroSliderInterval);
-    currentHeroIndex = 0;
     showHeroProduct();
-    
-    if (heroProductsData.length > 1) {
-        heroSliderInterval = setInterval(() => {
-            currentImageIndex++;
-            if (currentImageIndex >= (heroProductsData[currentHeroIndex].images?.length || 1)) {
-                currentImageIndex = 0;
-                currentHeroIndex = (currentHeroIndex + 1) % heroProductsData.length;
-            }
-            showHeroProduct();
-        }, 8000);
-    }
 }
 
 // Show current hero product
 function showHeroProduct() {
     const slider = document.getElementById('hero-product-slider');
-    if (!slider) {
-        console.log('Hero slider element not found');
-        return;
-    }
-    if (heroProductsData.length === 0) {
-        console.log('No hero products data available');
-        return;
-    }
+    const indicators = document.getElementById('carousel-indicators');
+    if (!slider || heroProductsData.length === 0) return;
     
-    const product = heroProductsData[currentHeroIndex];
-    console.log('Showing hero product:', product.name);
-    
-    // Cycle through product images
-    const productImages = product.images && product.images.length > 0 ? product.images : ['https://via.placeholder.com/300x200'];
-    const imageToShow = productImages[currentImageIndex % productImages.length];
-    
-    const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType);
-    const isOutOfStock = (product.stock || 0) === 0;
-    
-    // Fixed animation selection
-    const randomAnimation1 = 'hero-product-slide';
-    const randomAnimation2 = 'hero-product-zoom';
-    
-    slider.innerHTML = `
-        <div class="${randomAnimation1} w-100 d-flex align-items-center" style="background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); height: 360px;">
-            <div class="d-flex w-100 hero-product-mobile" style="height: 360px;">
-                <div class="d-flex align-items-center justify-content-center" style="background: white; width: 50%; height: 360px;">
-                    ${product.discount ? `<div class="position-absolute top-0 start-0 bg-danger text-white px-3 py-1 rounded-end" style="z-index: 1;">${product.discount}${product.discountType === 'percentage' ? '%' : window.storeCurrency || '₹'} OFF</div>` : ''}
-                    <img src="${imageToShow}" alt="${product.name}" style="max-width: 90%; max-height: 90%; object-fit: contain;">
-                </div>
-                <div class="d-flex align-items-center justify-content-center" style="width: 50%; height: 360px;">
-                    <div class="text-center p-4">
-                        <h2 class="mb-3">${product.name}</h2>
-                        ${product.discount ? `<p class="text-muted text-decoration-line-through mb-2 fs-4">${window.storeCurrency || '₹'}${product.price}</p>` : ''}
-                        <p class="text-primary fw-bold display-5 mb-4">${window.storeCurrency || '₹'}${finalPrice.toFixed(2)}</p>
-                        <button class="btn ${isOutOfStock ? 'btn-secondary' : 'btn-primary'} btn-lg px-5 py-3" ${isOutOfStock ? 'disabled' : ''} onclick="addToCart('${product.id}')">
-                            ${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
-                        </button>
+    // Create carousel items
+    slider.innerHTML = heroProductsData.map((product, index) => {
+        const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType);
+        const isOutOfStock = (product.stock || 0) === 0;
+        const productImage = product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/800x400';
+        
+        return `
+            <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                <div class="container h-100">
+                    <div class="row h-100 align-items-center">
+                        <div class="col-6 text-start">
+                            ${product.discount ? `<span class="badge bg-danger mb-3 fs-6">${product.discount}${product.discountType === 'percentage' ? '%' : window.storeCurrency || '₹'} OFF</span>` : ''}
+                            <h2 class="fw-bold mb-3">${product.name}</h2>
+                            <div class="mb-4">
+                                ${product.discount ? `<span class="text-muted text-decoration-line-through me-2 fs-5">${window.storeCurrency || '₹'}${product.price}</span>` : ''}
+                                <span class="h3 fw-bold text-primary">${window.storeCurrency || '₹'}${finalPrice.toFixed(2)}</span>
+                            </div>
+                            <button class="btn ${isOutOfStock ? 'btn-secondary' : 'btn-primary'} btn-lg" ${isOutOfStock ? 'disabled' : ''} onclick="addToCart('${product.id}')">
+                                <i class="fas fa-shopping-cart me-2"></i>${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+                            </button>
+                        </div>
+                        <div class="col-6 text-center">
+                            <div class="hero-product-container">
+                                <img src="${productImage}" alt="${product.name}" class="img-fluid">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-
-    `;
+        `;
+    }).join('');
+    
+    // Create indicators
+    indicators.innerHTML = heroProductsData.map((_, index) => 
+        `<button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="${index}" ${index === 0 ? 'class="active"' : ''}></button>`
+    ).join('');
 }
 
 // Open product details

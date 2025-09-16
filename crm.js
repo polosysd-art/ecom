@@ -68,8 +68,14 @@ function loadCustomerData() {
             
             console.log('Final customers array:', customers);
             customers.sort((a, b) => new Date(b.lastLogin) - new Date(a.lastLogin));
-            window.customers = customers;
-            renderCustomers();
+            window.allCustomers = customers;
+            if (typeof displayCustomers === 'function') {
+                displayCustomers(customers);
+            }
+            if (typeof updateStats === 'function') {
+                updateStats(customers);
+            }
+            renderAnalytics();
         }, (error) => {
             console.error('❌ Firestore listener error:', error.code, error.message);
         });
@@ -81,19 +87,36 @@ function loadCustomerData() {
 // Render customers
 function renderCustomers() {
     const container = document.getElementById('customers-list');
+    const countElement = document.getElementById('customer-count');
+    
+    // Update customer count
+    if (countElement) {
+        countElement.textContent = customers.length;
+    }
+    
     if (customers.length === 0) {
-        container.innerHTML = '';
+        container.innerHTML = `
+            <div class="text-center p-4 text-muted">
+                <i class="fas fa-users fa-3x mb-3"></i>
+                <p>No customers found</p>
+            </div>
+        `;
         return;
     }
     
     container.innerHTML = customers.map(customer => `
-        <div class="chat-item" onclick="selectCustomer('${customer.id}')" data-customer="${customer.id}">
-            <div class="chat-avatar" style="background: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="chat-info">
-                <div class="chat-name">${customer.name}</div>
-                <div class="chat-preview">${customer.email}</div>
+        <div class="list-group-item list-group-item-action border-0 border-bottom" onclick="selectCustomer('${customer.id}')" data-customer="${customer.id}" style="cursor: pointer;">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">${customer.name}</div>
+                    <small class="text-muted">${customer.email}</small>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">${new Date(customer.lastLogin).toLocaleDateString()}</small>
+                </div>
             </div>
         </div>
     `).join('');

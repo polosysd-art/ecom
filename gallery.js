@@ -40,13 +40,29 @@ function loadGallery() {
 function createImageCard(id, data) {
     const card = document.createElement('div');
     card.className = 'gallery-item';
-    card.innerHTML = `
-        <img src="${data.url}" alt="${data.name}" loading="eager" onclick="previewImage('${data.url}', '${data.name}', '${id}', '${data.path}')" style="cursor: pointer;">
-        <div class="gallery-item-info">
-            <p>${data.name}</p>
-            <small>${formatFileSize(data.size)}</small>
-        </div>
-    `;
+    
+    const img = document.createElement('img');
+    img.src = data.url || '';
+    img.alt = data.name || '';
+    img.loading = 'eager';
+    img.style.cursor = 'pointer';
+    img.addEventListener('click', () => previewImage(data.url, data.name, id, data.path));
+    
+    const info = document.createElement('div');
+    info.className = 'gallery-item-info';
+    
+    const nameP = document.createElement('p');
+    nameP.textContent = data.name || '';
+    
+    const sizeSmall = document.createElement('small');
+    sizeSmall.textContent = formatFileSize(data.size || 0);
+    
+    info.appendChild(nameP);
+    info.appendChild(sizeSmall);
+    
+    card.appendChild(img);
+    card.appendChild(info);
+    
     return card;
 }
 
@@ -78,19 +94,50 @@ function showUploadModal() {
         justify-content: center;
         z-index: 10000;
     `;
-    modal.innerHTML = `
-        <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; min-width: 300px;">
-            <h3>Upload Image</h3>
-            <br>
-            <button class="btn" onclick="document.getElementById('image-upload').click()" style="background: white; color: #333; border: 1px solid #ddd;">Choose File</button>
-            <br><br>
-            <input type="url" id="url-input" placeholder="Or paste image URL" style="width: 100%; padding: 10px; margin-bottom: 15px;">
-            <br>
-            <button class="btn" onclick="uploadFromUrl()" style="background: white; color: #333; border: 1px solid #ddd;">Upload from URL</button>
-            <br><br>
-            <button onclick="this.closest('div').parentElement.remove()">Cancel</button>
-        </div>
-    `;
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = 'background: white; padding: 30px; border-radius: 8px; text-align: center; min-width: 300px;';
+    
+    const title = document.createElement('h3');
+    title.textContent = 'Upload Image';
+    modalContent.appendChild(title);
+    
+    modalContent.appendChild(document.createElement('br'));
+    
+    const chooseBtn = document.createElement('button');
+    chooseBtn.className = 'btn';
+    chooseBtn.textContent = 'Choose File';
+    chooseBtn.style.cssText = 'background: white; color: #333; border: 1px solid #ddd;';
+    chooseBtn.addEventListener('click', () => document.getElementById('image-upload').click());
+    modalContent.appendChild(chooseBtn);
+    
+    modalContent.appendChild(document.createElement('br'));
+    modalContent.appendChild(document.createElement('br'));
+    
+    const urlInput = document.createElement('input');
+    urlInput.type = 'url';
+    urlInput.id = 'url-input';
+    urlInput.placeholder = 'Or paste image URL';
+    urlInput.style.cssText = 'width: 100%; padding: 10px; margin-bottom: 15px;';
+    modalContent.appendChild(urlInput);
+    
+    modalContent.appendChild(document.createElement('br'));
+    
+    const uploadBtn = document.createElement('button');
+    uploadBtn.className = 'btn';
+    uploadBtn.textContent = 'Upload from URL';
+    uploadBtn.style.cssText = 'background: white; color: #333; border: 1px solid #ddd;';
+    uploadBtn.addEventListener('click', uploadFromUrl);
+    modalContent.appendChild(uploadBtn);
+    
+    modalContent.appendChild(document.createElement('br'));
+    modalContent.appendChild(document.createElement('br'));
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', () => modal.remove());
+    modalContent.appendChild(cancelBtn);
+    
+    modal.appendChild(modalContent);
     document.body.appendChild(modal);
 }
 

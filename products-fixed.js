@@ -7,9 +7,9 @@ let productAttributes = { categories: [], brands: [], colors: [], sizes: [], uni
 let currencySymbol = '₹'; // Default currency
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM loaded, initializing products...');
-    loadProductAttributes();
+    await loadProductAttributes();
     loadProducts();
     setupEventListeners();
 });
@@ -26,6 +26,9 @@ async function loadProductAttributes() {
         const currencyDoc = await getDoc(doc(db, 'settings', 'currency'));
         if (currencyDoc.exists()) {
             currencySymbol = currencyDoc.data().symbol || '₹';
+            console.log('Currency loaded:', currencySymbol);
+        } else {
+            console.log('Currency document does not exist, using default:', currencySymbol);
         }
     } catch (error) {
         console.error('Error loading product attributes:', error);
@@ -169,6 +172,22 @@ function setupEventListeners() {
     if (addBtn) {
         addBtn.addEventListener('click', showAddProduct);
     }
+    
+    // Filter change listener
+    const filterSelect = document.getElementById('product-filter');
+    if (filterSelect) {
+        filterSelect.addEventListener('change', () => {
+            renderProducts();
+        });
+    }
+    
+    // Search input listener
+    const searchInput = document.getElementById('search-products');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            renderProducts();
+        });
+    }
 }
 
 // Load products with real-time updates
@@ -213,94 +232,173 @@ function renderProducts() {
         return;
     }
     
-    if (products.length === 0) {
-        grid.innerHTML = '<div class="p-3 text-center text-muted">No products found. Add your first product!</div>';
+    // Get current filter and search values
+    const filterSelect = document.getElementById('product-filter');
+    const filter = filterSelect ? filterSelect.value : 'all';
+    const searchInput = document.getElementById('search-products');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    let filteredProducts = products;
+    
+    // Apply filter
+    if (filter === 'lowstock') {
+        filteredProducts = filteredProducts.filter(product => {
+            const stock = product.stock || 0;
+            const minStock = product.minStock || 0;
+            return stock <= minStock && minStock > 0;
+        });
+    } else if (filter === 'outofstock') {
+        filteredProducts = filteredProducts.filter(product => {
+            const stock = product.stock || 0;
+            return stock === 0;
+        });
+    }
+    
+    // Apply search
+    if (searchTerm) {
+        filteredProducts = filteredProducts.filter(product => {
+            return product.name.toLowerCase().includes(searchTerm) ||
+                   (product.description && product.description.toLowerCase().includes(searchTerm)) ||
+                   (product.category && product.category.toLowerCase().includes(searchTerm));
+        });
+    }
+    
+    // Update stats
+    updateProductStats();
+    
+    if (filteredProducts.length === 0) {
+        const message = filter === 'lowstock' ? 'No low stock products found!' : 
+                       filter === 'outofstock' ? 'No out of stock products found!' :
+                       searchTerm ? 'No products found matching your search.' :
+                       'No products found. Add your first product!';
+        grid.innerHTML = `<div class="p-3 text-center text-muted">${message}</div>`;
         return;
     }
     
-    grid.innerHTML = products.map(product => {
+    grid.innerHTML = filteredProducts.map(product => {
         const firstImage = product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/50x50';
         const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType, product.vat);
         const isOutOfStock = (product.stock || 0) === 0;
         const isLowStock = (product.stock || 0) <= (product.minStock || 0) && (product.minStock || 0) > 0 && !isOutOfStock;
         
-        const stockClass = isOutOfStock ? 'stock-out' : isLowStock ? 'stock-low' : 'stock-ok';
+        const stockColor = isOutOfStock ? '#dc3545' : isLowStock ? '#ffc107' : '#198754';
         
         return `
-            <div class="chat-item ${stockClass}" onclick="selectProduct('${product.id}')" data-product="${product.id}">
-                <img src="${firstImage}" alt="${product.name}" class="chat-avatar">
+            <div class="chat-item" onclick="selectProduct('${product.id}')" data-product-id="${product.id}">
+                <div class="chat-avatar" style="background: ${stockColor}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    <img src="${firstImage}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=&quot;fas fa-box&quot;></i>';">
+                </div>
                 <div class="chat-info">
                     <div class="chat-name">${product.name}</div>
-                    <div class="chat-preview">${currencySymbol}${finalPrice.toFixed(2)} • <span style="color: ${
-                        isOutOfStock ? '#dc3545' : isLowStock ? '#ffc107' : '#198754'
-                    }; font-weight: bold;">${product.stock || 0} left</span></div>
+                    <div class="chat-preview">${currencySymbol}${finalPrice.toFixed(2)} • Stock: ${product.stock || 0}</div>
                 </div>
-                <div class="chat-status">
-                    <span class="status-indicator ${
-                        isOutOfStock ? 'status-offline' : isLowStock ? 'status-away' : 'status-online'
-                    }"></span>
-                    ${product.discount ? `<div class="discount-badge" style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px;">${product.discount}${product.discountType === 'percentage' ? '%' : currencySymbol}</div>` : ''}
+                <div class="badge-container">
+                    <div class="${isOutOfStock ? 'cancelled-badge' : isLowStock ? 'pending-badge' : 'delivered-badge'}">${isOutOfStock ? 'OUT' : isLowStock ? 'LOW' : 'OK'}</div>
+                    ${product.discount ? `<div style="font-size: 11px; color: #dc3545; margin-top: 2px;">${product.discount}${product.discountType === 'percentage' ? '%' : currencySymbol} OFF</div>` : ''}
                 </div>
             </div>
         `;
     }).join('');
 }
 
+// Update product statistics
+function updateProductStats() {
+    const total = products.length;
+    const lowStock = products.filter(p => {
+        const stock = p.stock || 0;
+        const minStock = p.minStock || 0;
+        return stock <= minStock && minStock > 0 && stock > 0;
+    }).length;
+    
+    const totalEl = document.getElementById('total-products');
+    const lowStockEl = document.getElementById('low-stock-products');
+    
+    if (totalEl) totalEl.textContent = `Total: ${total}`;
+    if (lowStockEl) lowStockEl.textContent = `Low Stock: ${lowStock}`;
+}
+
 
 
 // Select product
 window.selectProduct = function(productId) {
+    // Remove active class from all items
+    document.querySelectorAll('.chat-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to selected item
+    const productElement = document.querySelector(`[data-product-id="${productId}"]`);
+    if (productElement) {
+        productElement.classList.add('active');
+    }
+    
     const product = products.find(p => p.id === productId);
     if (!product) return;
     
+    window.selectedProduct = product;
+    
+    // Mobile: Show modal
+    if (window.innerWidth <= 768) {
+        showMobileProductModal(product);
+        return;
+    }
+    
+    // Show detail view and header
+    document.getElementById('product-detail-view').style.display = 'flex';
+    document.getElementById('detail-header').style.display = 'flex';
+    
+    // Update product details
+    document.getElementById('product-title').textContent = product.name;
+    
     const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType, product.vat);
     
-    document.getElementById('product-detail').innerHTML = `
-        <div class="product-detail-view">
-            <div class="detail-header">
-                <h3>${product.name}</h3>
-                <div class="header-actions">
-                    <button onclick="editProduct('${product.id}')" class="btn btn-outline-primary btn-sm me-2" style="height: 32px; width: 45px;">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="addStock('${product.id}')" class="btn btn-outline-success btn-sm me-2" style="height: 32px; width: 45px;">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                    <button onclick="deleteProduct('${product.id}')" class="btn btn-outline-danger btn-sm" style="height: 32px; width: 45px;">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+    document.getElementById('product-details-content').innerHTML = `
+        <div class="form-section">
+            <h3>Product Information</h3>
+            <div class="product-images mb-3">
+                ${product.images && product.images.length > 0 ? 
+                    product.images.map(img => `<img src="${img}" alt="Product image" style="height: 120px; width: 120px; object-fit: cover; margin: 5px; border-radius: 8px; border: 1px solid #ddd;">`).join('') : 
+                    '<img src="https://via.placeholder.com/120x120" alt="No image" style="height: 120px; width: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">'}
             </div>
-            <div class="detail-content">
-                <div class="product-images mb-3">
-                    ${product.images && product.images.length > 0 ? 
-                        product.images.map(img => `<img src="${img}" alt="Product image" style="height: 150px; object-fit: cover; margin: 5px; border-radius: 8px;">`).join('') : 
-                        '<img src="https://via.placeholder.com/150x150" alt="No image" style="height: 150px; object-fit: cover; border-radius: 8px;">'}
-                </div>
-                ${product.vat ? `<div class="info-row"><label>Base Price:</label> <span>${currencySymbol}${calculateBasePrice(product.price, product.vat).toFixed(2)}</span></div>` : ''}
-                <div class="info-row"><label>Price (Inc. Tax):</label> <span>${currencySymbol}${product.price}</span></div>
-                ${product.discount ? `<div class="info-row"><label>Discount:</label> <span>${product.discount}${product.discountType === 'percentage' ? '%' : ' ' + currencySymbol}</span></div>` : ''}
-                <div class="info-row"><label>Final Price (Inc. Tax):</label> <span class="text-success fw-bold">${currencySymbol}${finalPrice.toFixed(2)}</span></div>
-                <div class="info-row"><label>Stock:</label> <span>${product.stock || 0}</span></div>
-                <div class="info-row"><label>Min Stock:</label> <span>${product.minStock || 0}</span></div>
-                <div class="info-row"><label>Category:</label> <span>${product.category || 'N/A'}</span></div>
-                ${product.brand ? `<div class="info-row"><label>Brand:</label> <span>${product.brand}</span></div>` : ''}
-                ${product.color ? `<div class="info-row"><label>Color:</label> <span>${product.color}</span></div>` : ''}
-                ${product.size ? `<div class="info-row"><label>Size:</label> <span>${product.size}</span></div>` : ''}
-                ${product.unit ? `<div class="info-row"><label>Unit:</label> <span>${product.unit}</span></div>` : ''}
-                ${product.vat ? `<div class="info-row"><label>VAT:</label> <span>${product.vat}%</span></div>` : ''}
-                <div class="info-row"><label>Description:</label> <span>${product.description || 'No description'}</span></div>
-                ${product.createdAt ? `<div class="info-row"><label>Created:</label> <span>${new Date(product.createdAt).toLocaleDateString()}</span></div>` : ''}
-                ${product.updatedAt ? `<div class="info-row"><label>Updated:</label> <span>${new Date(product.updatedAt).toLocaleDateString()}</span></div>` : ''}
-            </div>
+            ${product.vat ? `<div class="info-row"><label>Base Price:</label> <span>${currencySymbol}${calculateBasePrice(product.price, product.vat).toFixed(2)}</span></div>` : ''}
+            <div class="info-row"><label>Price (Inc. Tax):</label> <span>${currencySymbol}${product.price}</span></div>
+            ${product.discount ? `<div class="info-row"><label>Discount:</label> <span>${product.discount}${product.discountType === 'percentage' ? '%' : ' ' + currencySymbol}</span></div>` : ''}
+            <div class="info-row"><label>Final Price (Inc. Tax):</label> <span class="final-price">${currencySymbol}${finalPrice.toFixed(2)}</span></div>
+        </div>
+        <div class="form-section">
+            <h3>Stock & Category</h3>
+            <div class="info-row"><label>Stock:</label> <span>${product.stock || 0}</span></div>
+            <div class="info-row"><label>Min Stock:</label> <span>${product.minStock || 0}</span></div>
+            <div class="info-row"><label>Category:</label> <span>${product.category || 'N/A'}</span></div>
+            ${product.brand ? `<div class="info-row"><label>Brand:</label> <span>${product.brand}</span></div>` : ''}
+            ${product.color ? `<div class="info-row"><label>Color:</label> <span>${product.color}</span></div>` : ''}
+            ${product.size ? `<div class="info-row"><label>Size:</label> <span>${product.size}</span></div>` : ''}
+            ${product.unit ? `<div class="info-row"><label>Unit:</label> <span>${product.unit}</span></div>` : ''}
+            ${product.vat ? `<div class="info-row"><label>VAT:</label> <span>${product.vat}%</span></div>` : ''}
+        </div>
+        <div class="form-section">
+            <h3>Description</h3>
+            <div class="info-row"><label>Description:</label> <span>${product.description || 'No description'}</span></div>
+            ${product.createdAt ? `<div class="info-row"><label>Created:</label> <span>${new Date(product.createdAt).toLocaleDateString()}</span></div>` : ''}
+            ${product.updatedAt ? `<div class="info-row"><label>Updated:</label> <span>${new Date(product.updatedAt).toLocaleDateString()}</span></div>` : ''}
         </div>
     `;
+    
+    // Setup action buttons
+    document.getElementById('edit-product-btn').onclick = () => editProduct(productId);
+    document.getElementById('delete-product-btn').onclick = () => deleteProduct(productId);
 };
 
 // Edit product
 window.editProduct = function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
+    
+    if (window.innerWidth <= 768) {
+        // Hide product list on mobile
+        document.querySelector('.col-md-4.col-lg-3').style.display = 'none';
+        document.querySelector('.col-md-8.col-lg-9').className = 'col-12';
+    }
     
     document.getElementById('product-detail').innerHTML = `
         <div class="card">
@@ -392,7 +490,7 @@ window.editProduct = function(productId) {
                         </button>
                     </div>
                     <div class="d-flex gap-2 mt-2">
-                        <button type="button" class="btn btn-secondary" onclick="selectProduct('${productId}')" style="height: 38px; flex: 1;">Cancel</button>
+                        <button type="button" class="btn btn-secondary" onclick="${window.innerWidth <= 768 ? 'location.reload()' : `selectProduct('${productId}')`}" style="height: 38px; flex: 1;">Cancel</button>
                         <button type="submit" class="btn btn-primary" style="height: 38px; flex: 1;">Update</button>
                     </div>
                 </form>
@@ -481,13 +579,8 @@ window.deleteProduct = async function(productId) {
             await deleteDoc(doc(db, 'products', productId));
             showToast('Product deleted successfully!', 'success');
             
-            // Clear product detail view
-            document.getElementById('product-detail').innerHTML = `
-                <div class="card-body text-center py-5">
-                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">Select a product to view details</h5>
-                </div>
-            `;
+            // Hide detail view
+            document.getElementById('product-detail-view').style.display = 'none';
         } catch (error) {
             console.error('Error deleting product:', error);
             showToast('Error deleting product: ' + error.message, 'error');
@@ -497,7 +590,16 @@ window.deleteProduct = async function(productId) {
 
 // Show add product form
 function showAddProduct() {
-    document.getElementById('product-detail').innerHTML = `
+    // Show detail view and header
+    document.getElementById('product-detail-view').style.display = 'flex';
+    document.getElementById('detail-header').style.display = 'flex';
+    
+    // Update header
+    document.getElementById('product-title').textContent = 'Add New Product';
+    document.getElementById('edit-product-btn').style.display = 'none';
+    document.getElementById('delete-product-btn').style.display = 'none';
+    
+    document.getElementById('product-details-content').innerHTML = `
         <div class="card">
             <div class="card-header">
                 <h5>Add New Product</h5>
@@ -751,6 +853,54 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Show mobile product modal
+function showMobileProductModal(product) {
+    window.selectedProduct = product;
+    document.getElementById('mobile-product-title').textContent = product.name;
+    
+    const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType, product.vat);
+    
+    document.getElementById('mobile-product-content').innerHTML = `
+        <div class="form-section">
+            <h3>Product Information</h3>
+            <div class="product-images mb-3">
+                ${product.images && product.images.length > 0 ? 
+                    product.images.map(img => `<img src="${img}" alt="Product image" style="width: 100%; height: auto; max-height: 200px; object-fit: contain; border-radius: 8px; margin-bottom: 10px;">`).join('') : 
+                    '<img src="https://via.placeholder.com/300x200" alt="No image" style="width: 100%; height: auto; max-height: 200px; object-fit: contain; border-radius: 8px;">'}
+            </div>
+            ${product.vat ? `<div class="info-row"><label>Base Price:</label> <span>${currencySymbol}${calculateBasePrice(product.price, product.vat).toFixed(2)}</span></div>` : ''}
+            <div class="info-row"><label>Price (Inc. Tax):</label> <span>${currencySymbol}${product.price}</span></div>
+            ${product.discount ? `<div class="info-row"><label>Discount:</label> <span>${product.discount}${product.discountType === 'percentage' ? '%' : ' ' + currencySymbol}</span></div>` : ''}
+            <div class="info-row"><label>Final Price (Inc. Tax):</label> <span class="final-price">${currencySymbol}${finalPrice.toFixed(2)}</span></div>
+            <div class="info-row"><label>Stock:</label> <span>${product.stock || 0}</span></div>
+            <div class="info-row"><label>Min Stock:</label> <span>${product.minStock || 0}</span></div>
+            <div class="info-row"><label>Category:</label> <span>${product.category || 'N/A'}</span></div>
+            ${product.brand ? `<div class="info-row"><label>Brand:</label> <span>${product.brand}</span></div>` : ''}
+            ${product.color ? `<div class="info-row"><label>Color:</label> <span>${product.color}</span></div>` : ''}
+            ${product.size ? `<div class="info-row"><label>Size:</label> <span>${product.size}</span></div>` : ''}
+            ${product.unit ? `<div class="info-row"><label>Unit:</label> <span>${product.unit}</span></div>` : ''}
+            ${product.vat ? `<div class="info-row"><label>VAT:</label> <span>${product.vat}%</span></div>` : ''}
+            <div class="info-row"><label>Description:</label> <span>${product.description || 'No description'}</span></div>
+            ${product.createdAt ? `<div class="info-row"><label>Created:</label> <span>${new Date(product.createdAt).toLocaleDateString()}</span></div>` : ''}
+            ${product.updatedAt ? `<div class="info-row"><label>Updated:</label> <span>${new Date(product.updatedAt).toLocaleDateString()}</span></div>` : ''}
+        </div>
+    `;
+    
+    // Setup mobile action buttons
+    document.getElementById('mobile-edit-product-btn').onclick = () => {
+        closeMobileProductModal();
+        editProduct(product.id);
+    };
+    document.getElementById('mobile-delete-product-btn').onclick = () => deleteProduct(product.id);
+    
+    document.getElementById('mobile-product-modal').style.display = 'flex';
+}
+
+// Close mobile product modal
+window.closeMobileProductModal = function() {
+    document.getElementById('mobile-product-modal').style.display = 'none';
+};
 
 // Debug function
 window.debugProducts = () => {

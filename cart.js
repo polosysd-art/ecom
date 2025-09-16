@@ -1,19 +1,38 @@
-// Shopping Cart Functions - DO NOT EDIT
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
+// Shopping Cart Functions - Updated for Cart Manager
 
 // Add item to cart
-export function addToCart(product) {
-  const existingItem = cart.find(item => item.id === product.id);
+export async function addToCart(product) {
+  console.log('=== ADD TO CART DEBUG ===');
+  console.log('Product:', product);
+  console.log('window.cartManager exists:', !!window.cartManager);
   
-  if (existingItem) {
-    existingItem.quantity += 1;
+  if (window.cartManager) {
+    console.log('Using cart manager');
+    console.log('Current user:', window.cartManager.currentUser);
+    console.log('Temp cart before:', window.cartManager.tempCart);
+    
+    await window.cartManager.addToCart(product);
+    
+    console.log('Temp cart after:', window.cartManager.tempCart);
+    showCartMessage('✓ Added to cart!');
   } else {
-    cart.push({ ...product, quantity: 1 });
+    console.log('No cart manager, using localStorage fallback');
+    // Fallback to localStorage
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const existingItem = cart.find(item => item.id === product.id);
+    
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cart.push({ ...product, quantity: 1 });
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
+    console.log('Saved to localStorage:', cart);
+    updateCartDisplay();
+    showCartMessage('✓ Added to cart!');
   }
-  
-  saveCart();
-  updateCartDisplay();
-  showCartMessage('✓ Added to cart!');
+  console.log('=== ADD TO CART DEBUG END ===');
 }
 
 // Show cart message
@@ -54,71 +73,72 @@ function showCartMessage(message) {
 }
 
 // Remove item from cart
-export function removeFromCart(productId) {
-  cart = cart.filter(item => item.id !== productId);
-  saveCart();
-  updateCartDisplay();
+export async function removeFromCart(productId) {
+  if (window.cartManager) {
+    await window.cartManager.removeFromCart(productId);
+  } else {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart = cart.filter(item => item.id !== productId);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartDisplay();
+  }
 }
 
 // Update quantity
-export function updateQuantity(productId, quantity) {
-  const item = cart.find(item => item.id === productId);
-  if (item) {
-    item.quantity = Math.max(0, quantity);
-    if (item.quantity === 0) {
-      removeFromCart(productId);
-    } else {
-      saveCart();
-      updateCartDisplay();
+export async function updateQuantity(productId, quantity) {
+  if (window.cartManager) {
+    await window.cartManager.updateQuantity(productId, quantity);
+  } else {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const item = cart.find(item => item.id === productId);
+    if (item) {
+      item.quantity = Math.max(0, quantity);
+      if (item.quantity === 0) {
+        await removeFromCart(productId);
+      } else {
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartDisplay();
+      }
     }
   }
 }
 
 // Get cart items
-export function getCart() {
-  // Reload from localStorage to ensure fresh data
-  cart = JSON.parse(localStorage.getItem('cart')) || [];
-  console.log('Getting cart from localStorage:', cart);
-  console.log('localStorage cart raw:', localStorage.getItem('cart'));
-  return cart;
+export async function getCart() {
+  if (window.cartManager) {
+    return await window.cartManager.getCart();
+  } else {
+    return JSON.parse(localStorage.getItem('cart')) || [];
+  }
 }
 
 // Get cart total
-export function getCartTotal() {
+export async function getCartTotal() {
+  const cart = await getCart();
   return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 }
 
 // Clear cart
-export function clearCart() {
-  cart = [];
-  saveCart();
-  updateCartDisplay();
-}
-
-// Save cart to localStorage
-function saveCart() {
-  localStorage.setItem('cart', JSON.stringify(cart));
+export async function clearCart() {
+  if (window.cartManager) {
+    await window.cartManager.clearCart();
+  } else {
+    localStorage.removeItem('cart');
+    updateCartDisplay();
+  }
 }
 
 // Update cart display
-function updateCartDisplay() {
-  const cartCount = document.getElementById('cart-count');
-  if (cartCount) {
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartCount.textContent = totalItems;
-    cartCount.style.display = totalItems > 0 ? 'inline' : 'none';
-  }
-  
-  // Update all cart count elements
-  const cartCounts = document.querySelectorAll('.cart-count');
-  cartCounts.forEach(el => {
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    el.textContent = totalItems;
-    el.style.display = totalItems > 0 ? 'inline' : 'none';
-  });
-  
-  // Also update via navigation if available
-  if (window.navigation && window.navigation.updateCartCount) {
-    window.navigation.updateCartCount();
+async function updateCartDisplay() {
+  if (window.cartManager) {
+    await window.cartManager.updateCartCount();
+  } else {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const cartCounts = document.querySelectorAll('.cart-count');
+    cartCounts.forEach(el => {
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      el.textContent = totalItems;
+      el.style.display = totalItems > 0 ? 'inline' : 'none';
+    });
   }
 }

@@ -121,19 +121,60 @@ function displayProducts() {
         return;
     }
     
-    container.innerHTML = products.map(product => `
-        <div class="product-admin-card">
-            <img src="${product.image || 'https://via.placeholder.com/250x150'}" alt="${product.name}">
-            <h3>${product.name}</h3>
-            <p>${product.description}</p>
-            <p><strong>Category:</strong> ${product.category}</p>
-            <div class="price">$${product.price.toFixed(2)}</div>
-            <div class="product-actions">
-                <button class="btn edit-btn" onclick="editProduct('${product.id}')">Edit</button>
-                <button class="btn delete-btn" onclick="deleteProduct('${product.id}')">Delete</button>
-            </div>
-        </div>
-    `).join('');
+    container.innerHTML = '';
+    products.forEach(product => {
+        const card = createProductCard(product);
+        container.appendChild(card);
+    });
+}
+
+// Create product card element
+function createProductCard(product) {
+    const card = document.createElement('div');
+    card.className = 'product-admin-card';
+    
+    const img = document.createElement('img');
+    img.src = product.image || 'https://via.placeholder.com/250x150';
+    img.alt = escapeHtml(product.name || '');
+    
+    const title = document.createElement('h3');
+    title.textContent = product.name || '';
+    
+    const desc = document.createElement('p');
+    desc.textContent = product.description || '';
+    
+    const category = document.createElement('p');
+    category.innerHTML = '<strong>Category:</strong> ' + escapeHtml(product.category || '');
+    
+    const price = document.createElement('div');
+    price.className = 'price';
+    const priceValue = isValidNumber(product.price) ? product.price.toFixed(2) : '0.00';
+    price.textContent = `$${priceValue}`;
+    
+    const actions = document.createElement('div');
+    actions.className = 'product-actions';
+    
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn edit-btn';
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', () => editProduct(product.id));
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn delete-btn';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.addEventListener('click', () => deleteProduct(product.id));
+    
+    actions.appendChild(editBtn);
+    actions.appendChild(deleteBtn);
+    
+    card.appendChild(img);
+    card.appendChild(title);
+    card.appendChild(desc);
+    card.appendChild(category);
+    card.appendChild(price);
+    card.appendChild(actions);
+    
+    return card;
 }
 
 // Open product modal
@@ -190,10 +231,10 @@ async function handleProductSubmit(e) {
         
         closeProductModal();
         loadProducts();
-        alert('Product saved successfully!');
+        showNotification('Product saved successfully!', 'success');
     } catch (error) {
         console.error('Error saving product:', error);
-        alert('Error saving product. Please try again.');
+        showNotification('Error saving product. Please try again.', 'error');
     }
 }
 
@@ -203,10 +244,10 @@ async function deleteProduct(productId) {
         try {
             await deleteDoc(doc(db, "products", productId));
             loadProducts();
-            alert('Product deleted successfully!');
+            showNotification('Product deleted successfully!', 'success');
         } catch (error) {
             console.error('Error deleting product:', error);
-            alert('Error deleting product. Please try again.');
+            showNotification('Error deleting product. Please try again.', 'error');
         }
     }
 }
@@ -274,10 +315,10 @@ async function updateOrderStatus(orderId, status) {
     try {
         await updateDoc(doc(db, "orders", orderId), { status });
         loadOrders();
-        alert(`Order ${status} successfully!`);
+        showNotification(`Order ${status} successfully!`, 'success');
     } catch (error) {
         console.error('Error updating order:', error);
-        alert('Error updating order. Please try again.');
+        showNotification('Error updating order. Please try again.', 'error');
     }
 }
 
@@ -315,12 +356,23 @@ function renderAttributes() {
     Object.keys(attributes).forEach(type => {
         const container = document.getElementById(`${type}-list`);
         if (container) {
-            container.innerHTML = attributes[type].map(item => `
-                <div class="attribute-item">
-                    <span>${item}</span>
-                    <button class="delete-attr-btn" onclick="removeAttribute('${type}', '${item}')">&times;</button>
-                </div>
-            `).join('');
+            container.innerHTML = '';
+            attributes[type].forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'attribute-item';
+                
+                const span = document.createElement('span');
+                span.textContent = item;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-attr-btn';
+                deleteBtn.textContent = '×';
+                deleteBtn.addEventListener('click', () => removeAttribute(type, item));
+                
+                itemDiv.appendChild(span);
+                itemDiv.appendChild(deleteBtn);
+                container.appendChild(itemDiv);
+            });
         }
     });
 }
@@ -360,3 +412,22 @@ window.editProduct = (productId) => openProductModal(productId);
 window.deleteProduct = deleteProduct;
 window.updateOrderStatus = updateOrderStatus;
 window.initializeAttributes = initializeAttributes;
+
+// Security utility functions
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function isValidNumber(value) {
+    return !isNaN(value) && isFinite(value);
+}
+
+function showNotification(message, type = 'success') {
+    if (window.navigation) {
+        window.navigation.showNotification(message, type);
+    } else {
+        console.log(`${type.toUpperCase()}: ${message}`);
+    }
+}

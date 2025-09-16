@@ -4,13 +4,27 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, get
 
 let products = [];
 let editingProductId = null;
+let currencySymbol = '₹'; // Default currency
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing products...');
+    loadCurrencySettings();
     loadProducts();
     setupEventListeners();
 });
+
+// Load currency settings
+async function loadCurrencySettings() {
+    try {
+        const currencyDoc = await getDoc(doc(db, 'settings', 'currency'));
+        if (currencyDoc.exists()) {
+            currencySymbol = currencyDoc.data().symbol || '₹';
+        }
+    } catch (error) {
+        console.error('Error loading currency settings:', error);
+    }
+}
 
 // Debug function
 window.debugProducts = () => {
@@ -56,9 +70,16 @@ function populateDropdowns(settings) {
             
             dropdown.element.addEventListener('change', async function() {
                 if (this.value === 'CREATE_NEW') {
-                    const newValue = prompt(`Enter new ${dropdown.type.toLowerCase()}:`);
+                    const newValue = window.prompt(`Enter new ${dropdown.type.toLowerCase()}:`);
                     if (newValue && newValue.trim()) {
                         const trimmedValue = newValue.trim();
+                        
+                        // Validate input
+                        if (trimmedValue.length > 50) {
+                            showMessage('Value too long (max 50 characters)', 'error');
+                            this.value = '';
+                            return;
+                        }
                         
                         // Add to dropdown
                         const option = document.createElement('option');
@@ -105,7 +126,22 @@ async function saveNewAttribute(attributeType, value) {
 function setupEventListeners() {
     document.getElementById('add-product-btn').addEventListener('click', showAddProduct);
     document.getElementById('product-form').addEventListener('submit', handleProductSave);
-    document.querySelector('.close').addEventListener('click', closeProductModal);
+    
+    // Filter change listener
+    const filterSelect = document.getElementById('product-filter');
+    if (filterSelect) {
+        filterSelect.addEventListener('change', () => {
+            renderProducts();
+        });
+    }
+    
+    // Search input listener
+    const searchInput = document.getElementById('search-products');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            renderProducts();
+        });
+    }
     
     window.addEventListener('click', (e) => {
         if (e.target === document.getElementById('product-modal')) {
@@ -132,7 +168,7 @@ function showAddProduct() {
                         <label>Price *</label>
                         <div class="price-row">
                             <input type="number" id="new-price" step="0.01" required>
-                            <span class="final-amount" id="final-amount">Final: ₹0.00</span>
+                            <span class="final-amount" id="final-amount">Final: ${currencySymbol}0.00</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -211,7 +247,7 @@ function showAddProduct() {
                             <label>Price *</label>
                             <div class="price-row">
                                 <input type="number" id="new-price" step="0.01" required>
-                                <span class="final-amount" id="final-amount">Final: ₹0.00</span>
+                                <span class="final-amount" id="final-amount">Final: ${currencySymbol}0.00</span>
                             </div>
                         </div>
                         <div class="form-group">
@@ -313,12 +349,52 @@ function renderProducts() {
         return;
     }
     
-    if (products.length === 0) {
-        grid.innerHTML = '<div class="p-3 text-center text-muted">No products found. Add your first product!</div>';
+    // Check for URL filter parameter and set filter dropdown
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlFilter = urlParams.get('filter');
+    const filterSelect = document.getElementById('product-filter');
+    
+    if (urlFilter === 'lowstock' && filterSelect) {
+        filterSelect.value = 'lowstock';
+    }
+    
+    // Get current filter and search values
+    const filter = filterSelect ? filterSelect.value : 'all';
+    const searchInput = document.getElementById('search-products');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    let filteredProducts = products;
+    
+    // Apply filter
+    if (filter === 'lowstock') {
+        filteredProducts = filteredProducts.filter(product => {
+            const stock = product.stock || 0;
+            const minStock = product.minStock || 0;
+            return stock <= minStock && minStock > 0;
+        });
+    } else if (filter === 'outofstock') {
+        filteredProducts = filteredProducts.filter(product => {
+            const stock = product.stock || 0;
+            return stock === 0;
+        });
+    }
+    
+    // Apply search
+    if (searchTerm) {
+        filteredProducts = filteredProducts.filter(product => {
+            return product.name.toLowerCase().includes(searchTerm) ||
+                   (product.description && product.description.toLowerCase().includes(searchTerm)) ||
+                   (product.category && product.category.toLowerCase().includes(searchTerm));
+        });
+    }
+    
+    if (filteredProducts.length === 0) {
+        const message = filter === 'lowstock' ? 'No low stock products found!' : 'No products found. Add your first product!';
+        grid.innerHTML = `<div class="p-3 text-center text-muted">${message}</div>`;
         return;
     }
     
-    grid.innerHTML = products.map(product => {
+    grid.innerHTML = filteredProducts.map(product => {
         const firstImage = product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/50x50';
         const finalPrice = calculateFinalPrice(product.price, product.discount, product.discountType);
         
@@ -330,16 +406,18 @@ function renderProducts() {
                 <img src="${firstImage}" alt="${product.name}" class="chat-avatar">
                 <div class="chat-info">
                     <div class="chat-name">${product.name}</div>
-                    <div class="chat-preview">₹${finalPrice.toFixed(2)} • Stock: ${product.stock || 0}</div>
+                    <div class="chat-preview">${currencySymbol}${finalPrice.toFixed(2)} • Stock: ${product.stock || 0}</div>
                 </div>
                 <div class="badge-container">
                     ${isOutOfStock ? `<div class="outofstock-badge">OUT OF STOCK</div>` : ''}
                     ${isLowStock ? `<div class="warning-badge">LOW STOCK</div>` : ''}
-                    ${product.discount ? `<div class="status-badge">${product.discount}${product.discountType === 'percentage' ? '%' : '₹'} OFF</div>` : ''}
+                    ${product.discount ? `<div class="status-badge">${product.discount}${product.discountType === 'percentage' ? '%' : currencySymbol} OFF</div>` : ''}
                 </div>
             </div>
         `;
     }).join('');
+    
+
 }
 
 // Calculate final price
@@ -396,9 +474,9 @@ window.selectProduct = function(productId) {
                         '<img src="https://via.placeholder.com/200x150" alt="No image" style="height: 200px; object-fit: cover;">'}
                     ${(product.stock || 0) === 0 ? `<div class="images-area-overlay">OUT OF STOCK</div>` : ''}
                 </div>
-                <div class="info-row"><label>Price:</label> <span>₹${product.price}</span></div>
-                ${product.discount ? `<div class="info-row"><label>Discount:</label> <span>${product.discount}${product.discountType === 'percentage' ? '%' : ' ₹'}</span></div>` : ''}
-                <div class="info-row"><label>Final Price:</label> <span class="final-price">₹${finalPrice.toFixed(2)}</span></div>
+                <div class="info-row"><label>Price:</label> <span>${currencySymbol}${product.price}</span></div>
+                ${product.discount ? `<div class="info-row"><label>Discount:</label> <span>${product.discount}${product.discountType === 'percentage' ? '%' : ' ' + currencySymbol}</span></div>` : ''}
+                <div class="info-row"><label>Final Price:</label> <span class="final-price">${currencySymbol}${finalPrice.toFixed(2)}</span></div>
                 <div class="info-row"><label>Stock:</label> <span>${product.stock || 0}</span></div>
                 <div class="info-row"><label>Category:</label> <span>${product.category || 'N/A'}</span></div>
                 ${product.brand ? `<div class="info-row"><label>Brand:</label> <span>${product.brand}</span></div>` : ''}
@@ -462,9 +540,9 @@ function showMobileProductModal(product) {
         </div>
         <div class="form-section">
             <h3>Product Details</h3>
-            <div class="info-row"><label>Price:</label> <span>₹${product.price}</span></div>
-            ${product.discount ? `<div class="info-row"><label>Discount:</label> <span>${product.discount}${product.discountType === 'percentage' ? '%' : ' ₹'}</span></div>` : ''}
-            <div class="info-row"><label>Final Price:</label> <span class="final-price">₹${finalPrice.toFixed(2)}</span></div>
+            <div class="info-row"><label>Price:</label> <span>${currencySymbol}${product.price}</span></div>
+            ${product.discount ? `<div class="info-row"><label>Discount:</label> <span>${product.discount}${product.discountType === 'percentage' ? '%' : ' ' + currencySymbol}</span></div>` : ''}
+            <div class="info-row"><label>Final Price:</label> <span class="final-price">${currencySymbol}${finalPrice.toFixed(2)}</span></div>
             <div class="info-row"><label>Stock:</label> <span>${product.stock || 0}</span></div>
             <div class="info-row"><label>Category:</label> <span>${product.category || 'N/A'}</span></div>
             ${product.brand ? `<div class="info-row"><label>Brand:</label> <span>${product.brand}</span></div>` : ''}
@@ -628,7 +706,7 @@ window.editProduct = (productId) => {
                         <label>Price *</label>
                         <div class="price-row">
                             <input type="number" id="edit-price" step="0.01" value="${product.price}" required>
-                            <span class="final-amount" id="edit-final-amount">Final: ₹${product.price}</span>
+                            <span class="final-amount" id="edit-final-amount">Final: ${currencySymbol}${product.price}</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -974,7 +1052,7 @@ function setupDiscountCalculation() {
         }
         
         if (finalAmount) {
-            finalAmount.textContent = `Final: ₹${Math.max(0, final).toFixed(2)}`;
+            finalAmount.textContent = `Final: ${currencySymbol}${Math.max(0, final).toFixed(2)}`;
         }
     }
     
@@ -1005,7 +1083,7 @@ function setupEditDiscountCalculation() {
         }
         
         if (finalAmount) {
-            finalAmount.textContent = `Final: ₹${Math.max(0, final).toFixed(2)}`;
+            finalAmount.textContent = `Final: ${currencySymbol}${Math.max(0, final).toFixed(2)}`;
         }
     }
     

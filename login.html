@@ -230,9 +230,19 @@
             try {
                 await signInWithEmailAndPassword(auth, email, password);
                 document.getElementById('loader').style.display = 'flex';
-                setTimeout(() => {
-                    window.location.href = './index.html';
-                }, 1500);
+                
+                // Check for redirect after login
+                const redirectUrl = localStorage.getItem('redirectAfterLogin');
+                if (redirectUrl) {
+                    localStorage.removeItem('redirectAfterLogin');
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1500);
+                } else {
+                    setTimeout(() => {
+                        window.location.href = './index.html';
+                    }, 1500);
+                }
             } catch (error) {
                 handleLoginError(error);
             }
@@ -297,9 +307,19 @@
                 }
                 
                 document.getElementById('loader').style.display = 'flex';
-                setTimeout(() => {
-                    window.location.href = './index.html';
-                }, 1500);
+                
+                // Check for redirect after signup
+                const redirectUrl = localStorage.getItem('redirectAfterLogin');
+                if (redirectUrl) {
+                    localStorage.removeItem('redirectAfterLogin');
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1500);
+                } else {
+                    setTimeout(() => {
+                        window.location.href = './index.html';
+                    }, 1500);
+                }
                 
             } catch (error) {
                 // Stop loading

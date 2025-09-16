@@ -42,36 +42,42 @@
     <div class="sidebar-overlay"></div>
 
     <!-- Main Content -->
-    <div class="main-content">
-        <div class="messenger-container">
-            <!-- Left Side - Customer List -->
-            <div class="chat-list">
-                <div class="chat-header">
-                    <h3>Customers</h3>
-                </div>
-                
-                <div class="chat-items" id="customers-list">
-                    <!-- Customers loaded here -->
-                </div>
-            </div>
-
-            <!-- Right Side - Customer Detail -->
-            <div class="chat-detail">
-
-                
-                <div class="order-detail-view" id="customer-detail-view" style="display: none;">
-                    <div class="detail-header">
-                        <div class="order-name-line">
-                            <h3 id="customer-title">Customer Details</h3>
-                        </div>
-                        <div class="header-actions">
-                            <button class="btn-chat" id="chat-customer-btn" onclick="chatWithSelectedCustomer()"><i class="fas fa-comment"></i> Chat</button>
+    <div class="main-content bg-light">
+        <div class="container-fluid h-100">
+            <div class="row h-100">
+                <!-- Left Side - Customer List -->
+                <div class="col-md-4 bg-white border-end p-0">
+                    <div class="p-3 border-bottom bg-light">
+                        <h5 class="mb-1">Customer Management</h5>
+                        <div class="small text-muted">
+                            <span id="total-customers">Total: 0</span> | 
+                            <span id="active-customers">Active: 0</span>
                         </div>
                     </div>
                     
-                    <div class="detail-content">
-                        <div id="customer-content">
-                            <!-- Customer details loaded here -->
+                    <div class="p-3 border-bottom">
+                        <input type="text" class="form-control" placeholder="Search customers..." id="customer-search">
+                    </div>
+                    
+                    <div class="overflow-auto" style="height: calc(100vh - 200px);" id="customers-list">
+                        <!-- Customers loaded here -->
+                    </div>
+                </div>
+
+                <!-- Right Side - Customer Details -->
+                <div class="col-md-8 d-flex flex-column">
+                    <div class="p-3 border-bottom d-flex justify-content-between align-items-center" id="detail-header" style="display: none;">
+                        <h5 class="mb-0" id="customer-title">Customer Details</h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-success btn-sm" onclick="chatWithSelectedCustomer()"><i class="fas fa-comment me-1"></i>Chat</button>
+                        </div>
+                    </div>
+                    
+                    <div class="customer-detail-view flex-grow-1" id="customer-detail-view" style="display: none;">
+                        <div class="detail-content p-3">
+                            <div id="customer-details-content">
+                                <!-- Customer details loaded here -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -79,23 +85,182 @@
         </div>
     </div>
 
-    <!-- Mobile Customer Modal -->
+    <!-- Mobile Customer Detail Modal -->
     <div id="mobile-customer-modal" class="mobile-modal" style="display: none;">
         <div class="mobile-modal-header">
-            <button class="mobile-back-btn" onclick="closeMobileCustomerModal()"><i class="fas fa-arrow-left"></i></button>
+            <button class="mobile-back-btn" onclick="closeMobileModal()"><i class="fas fa-arrow-left"></i></button>
             <h3 id="mobile-customer-title">Customer Details</h3>
         </div>
         <div class="mobile-modal-content" id="mobile-customer-content">
-            <!-- Mobile customer content loaded here -->
+            <!-- Mobile customer details loaded here -->
         </div>
-        <div class="mobile-modal-footer">
-            <button class="btn-chat-mobile" onclick="chatWithSelectedCustomer()"><i class="fas fa-comment"></i> Chat on WhatsApp</button>
+        <div class="mobile-modal-footer p-3 border-top">
+            <div class="d-flex gap-2">
+                <button class="btn btn-secondary" onclick="closeMobileModal()"><i class="fas fa-arrow-left me-1"></i>Back</button>
+                <button class="btn btn-success flex-fill" onclick="chatWithSelectedCustomer()"><i class="fas fa-comment me-1"></i>Chat</button>
+            </div>
         </div>
     </div>
 
     <script type="module" src="navigation.js"></script>
     <script type="module" src="auth-check.js"></script>
     <script type="module" src="crm.js"></script>
+    <script>
+        // Display customers in messenger style (copied from orders.html)
+        function displayCustomers(customers) {
+            const container = document.getElementById('customers-list');
+            
+            container.innerHTML = customers.map(customer => `
+                <div class="chat-item" onclick="selectCustomer('${customer.id}')" data-customer-id="${customer.id}">
+                    <div class="chat-avatar" style="background: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        ${customer.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-name">${customer.name}</div>
+                        <div class="chat-preview">${customer.email}</div>
+                    </div>
+                    <div class="badge-container">
+                        <div class="delivered-badge">ACTIVE</div>
+                        <div style="font-size: 11px; color: #999; margin-top: 2px;">${new Date(customer.createdAt || Date.now()).toLocaleDateString()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Update statistics
+        function updateStats(customers) {
+            const total = customers.length;
+            const active = customers.length; // All customers are considered active for now
+            
+            const totalEl = document.getElementById('total-customers');
+            const activeEl = document.getElementById('active-customers');
+            
+            if (totalEl) totalEl.textContent = `Total: ${total}`;
+            if (activeEl) activeEl.textContent = `Active: ${active}`;
+        }
+        
+        // Clarify address using both pincode and geocoding
+        window.clarifyAddress = async function(customerId, address) {
+            const addressElement = document.getElementById(`customer-address-${customerId}`);
+            
+            try {
+                addressElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting detailed address...';
+                
+                let pincodeData = null;
+                let geoData = null;
+                
+                // Try pincode lookup first
+                const pincodeMatch = address.match(/\b\d{6}\b/);
+                if (pincodeMatch) {
+                    const pincode = pincodeMatch[0];
+                    try {
+                        const pincodeResponse = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+                        const pincodeResult = await pincodeResponse.json();
+                        if (pincodeResult && pincodeResult[0]?.Status === 'Success' && pincodeResult[0]?.PostOffice?.length > 0) {
+                            pincodeData = { pincode, postOffice: pincodeResult[0].PostOffice[0] };
+                        }
+                    } catch (e) { console.log('Pincode lookup failed:', e); }
+                }
+                
+                // Extract location keywords from address text
+                const locationKeywords = {
+                    // Indian locations
+                    indianCities: ['mumbai', 'delhi', 'bangalore', 'chennai', 'kolkata', 'hyderabad', 'pune', 'ahmedabad', 'jaipur', 'lucknow', 'kanpur', 'nagpur', 'indore', 'thane', 'bhopal', 'visakhapatnam', 'pimpri', 'patna', 'vadodara', 'ghaziabad'],
+                    indianStates: ['maharashtra', 'karnataka', 'tamil nadu', 'gujarat', 'rajasthan', 'west bengal', 'madhya pradesh', 'uttar pradesh', 'delhi', 'punjab', 'haryana', 'kerala', 'odisha', 'telangana', 'bihar', 'assam'],
+                    // Saudi locations
+                    saudiCities: ['riyadh', 'jeddah', 'mecca', 'medina', 'dammam', 'khobar', 'dhahran', 'taif', 'buraidah', 'tabuk', 'hail', 'najran', 'jazan', 'abha', 'yanbu', 'jubail'],
+                    saudiRegions: ['riyadh region', 'makkah region', 'eastern province', 'asir region', 'jazan region', 'tabuk region', 'hail region', 'northern borders', 'najran region', 'bahah region', 'qassim region', 'madinah region'],
+                    areas: ['sector', 'phase', 'block', 'colony', 'nagar', 'road', 'street', 'avenue', 'park', 'society', 'apartment', 'complex', 'district', 'neighborhood']
+                };
+                
+                const addressLower = address.toLowerCase();
+                const identifiedLocations = {
+                    indianCities: locationKeywords.indianCities.filter(city => addressLower.includes(city)),
+                    indianStates: locationKeywords.indianStates.filter(state => addressLower.includes(state)),
+                    saudiCities: locationKeywords.saudiCities.filter(city => addressLower.includes(city)),
+                    saudiRegions: locationKeywords.saudiRegions.filter(region => addressLower.includes(region)),
+                    areas: locationKeywords.areas.filter(area => addressLower.includes(area))
+                };
+                
+                const isIndian = identifiedLocations.indianCities.length > 0 || identifiedLocations.indianStates.length > 0 || pincodeMatch;
+                const isSaudi = identifiedLocations.saudiCities.length > 0 || identifiedLocations.saudiRegions.length > 0;
+                
+                // Try geocoding with appropriate country
+                try {
+                    const country = isSaudi ? 'Saudi Arabia' : isIndian ? 'India' : '';
+                    const geoResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + (country ? ', ' + country : ''))}&limit=1&addressdetails=1`);
+                    const geoResult = await geoResponse.json();
+                    if (geoResult && geoResult.length > 0) {
+                        geoData = geoResult[0];
+                    }
+                } catch (e) { console.log('Geocoding failed:', e); }
+                
+                // Display combined results
+                let html = `<div><strong>Original:</strong> ${address}</div>`;
+                
+                if (pincodeData) {
+                    html += `
+                        <div><strong>Pincode Info:</strong> ${pincodeData.postOffice.Name}, ${pincodeData.postOffice.District}, ${pincodeData.postOffice.State} - ${pincodeData.pincode}</div>
+                    `;
+                }
+                
+                if (geoData) {
+                    const geoAddress = [
+                        geoData.address?.road,
+                        geoData.address?.city || geoData.address?.town,
+                        geoData.address?.state,
+                        geoData.address?.postcode
+                    ].filter(Boolean).join(', ');
+                    
+                    html += `
+                        <div><strong>Geocoded:</strong> ${geoAddress}</div>
+                        <div class="small text-muted">Coordinates: ${geoData.lat}, ${geoData.lon}</div>
+                    `;
+                }
+                
+                // Show identified keywords
+                if (isIndian || isSaudi || identifiedLocations.areas.length > 0) {
+                    html += '<div><strong>Identified:</strong> ';
+                    if (isSaudi) {
+                        html += `🇸🇦 Saudi - `;
+                        if (identifiedLocations.saudiCities.length > 0) {
+                            html += `Cities: ${identifiedLocations.saudiCities.join(', ')} `;
+                        }
+                        if (identifiedLocations.saudiRegions.length > 0) {
+                            html += `Regions: ${identifiedLocations.saudiRegions.join(', ')} `;
+                        }
+                    }
+                    if (isIndian) {
+                        html += `🇮🇳 India - `;
+                        if (identifiedLocations.indianCities.length > 0) {
+                            html += `Cities: ${identifiedLocations.indianCities.join(', ')} `;
+                        }
+                        if (identifiedLocations.indianStates.length > 0) {
+                            html += `States: ${identifiedLocations.indianStates.join(', ')} `;
+                        }
+                    }
+                    if (identifiedLocations.areas.length > 0) {
+                        html += `Areas: ${identifiedLocations.areas.join(', ')}`;
+                    }
+                    html += '</div>';
+                }
+                
+                if (!pincodeData && !geoData && !isIndian && !isSaudi) {
+                    html += '<div class="text-muted">(No additional details found)</div>';
+                }
+                
+                addressElement.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Address lookup error:', error);
+                addressElement.innerHTML = `${address} <span class="text-danger">(Error getting details)</span>`;
+            }
+        }
+        
+        // Make functions available globally
+        window.displayCustomers = displayCustomers;
+        window.updateStats = updateStats;
+    </script>
     <script>
         // Select customer function
         window.selectCustomer = function(customerId) {
@@ -105,125 +270,179 @@
             });
             
             // Add active class to selected item
-            document.querySelector(`[data-customer="${customerId}"]`).classList.add('active');
+            document.querySelector(`[data-customer-id="${customerId}"]`).classList.add('active');
+            
+            // Find customer data
+            const customer = window.allCustomers?.find(c => c.id === customerId);
+            selectedCustomer = customer;
             
             // Mobile: Show modal
             if (window.innerWidth <= 768) {
-                showMobileCustomerModal(customerId);
+                showMobileModal(customer).catch(console.error);
                 return;
             }
             
-            // Desktop: Show customer detail view
-            document.getElementById('customer-detail-view').style.display = 'flex';
+            // Desktop: Show customer details
+            document.getElementById('detail-header').style.display = 'flex';
+            document.getElementById('customer-detail-view').style.display = 'block';
             
-            // Load customer content
-            loadCustomerContent(customerId);
+            // Update customer details
+            document.getElementById('customer-title').textContent = customer.name;
+            
+            loadCustomerContent(customer).catch(console.error);
         }
         
-        // Show mobile customer modal
-        function showMobileCustomerModal(customerId) {
-            const customer = window.customers?.find(c => c.id === customerId);
-            if (!customer) return;
-            
-            selectedCustomerId = customerId;
+        // Show mobile modal
+        async function showMobileModal(customer) {
             document.getElementById('mobile-customer-title').textContent = customer.name;
             
-            document.getElementById('mobile-customer-content').innerHTML = `
-                <div class="form-section">
-                    <h3>Customer Information</h3>
-                    <div class="info-row">
-                        <label>Name:</label>
-                        <span>${customer.name}</span>
-                    </div>
-                    <div class="info-row">
-                        <label>Email:</label>
-                        <span>${customer.email}</span>
-                    </div>
-                    <div class="info-row">
-                        <label>Phone:</label>
-                        <span>${customer.phone}</span>
-                    </div>
-                    <div class="info-row">
-                        <label>Address:</label>
-                        <span style="text-align: right;">${customer.address}</span>
-                    </div>
-                    <div class="info-row">
-                        <label>Joined Date:</label>
-                        <span>${new Date(customer.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <div class="info-row">
-                        <label>Last Login:</label>
-                        <span>${new Date(customer.lastLogin).toLocaleDateString()}</span>
-                    </div>
-                </div>
-            `;
+            // Load full customer content for mobile too
+            await loadCustomerContent(customer);
+            const desktopContent = document.getElementById('customer-details-content').innerHTML;
+            document.getElementById('mobile-customer-content').innerHTML = desktopContent;
             
             document.getElementById('mobile-customer-modal').style.display = 'flex';
         }
         
-        // Close mobile customer modal
-        window.closeMobileCustomerModal = function() {
+        // Close mobile modal
+        window.closeMobileModal = function() {
             document.getElementById('mobile-customer-modal').style.display = 'none';
         }
         
         // Chat with selected customer
-        let selectedCustomerId = null;
+        let selectedCustomer = null;
         
         window.chatWithSelectedCustomer = function() {
-            if (!selectedCustomerId) return;
+            if (!selectedCustomer) return;
             
-            const customer = window.customers?.find(c => c.id === selectedCustomerId);
-            if (!customer || !customer.phone || customer.phone === 'N/A') {
+            if (!selectedCustomer.phone || selectedCustomer.phone === 'N/A') {
                 alert('Customer phone number not available');
                 return;
             }
             
-            const message = `Hi ${customer.name}! How can we help you today?`;
-            const phoneNumber = customer.phone.replace(/[^0-9]/g, '');
-            const fullPhoneNumber = phoneNumber.startsWith('91') ? phoneNumber : '91' + phoneNumber;
-            const whatsappUrl = `https://wa.me/${fullPhoneNumber}?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
+            const rawPhone = selectedCustomer.phone.replace(/\D/g, '');
+            const last10Digits = rawPhone.slice(-10);
+            const formattedPhone = `+91${last10Digits}`;
+            const message = `Hi ${selectedCustomer.name}! How can we help you today?`;
+            const whatsappLink = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+            
+            window.open(whatsappLink, '_blank');
         }
         
-        // Load customer content
-        function loadCustomerContent(customerId) {
-            selectedCustomerId = customerId;
-            const customer = window.customers?.find(c => c.id === customerId);
-            if (!customer) return;
-            
-            // Update header title
-            document.getElementById('customer-title').textContent = customer.name;
-            
-            const content = document.getElementById('customer-content');
-            content.innerHTML = `
-                <div class="form-section">
-                    <h3>Customer Information</h3>
-                    <div class="info-row">
-                        <label>Name:</label>
-                        <span>${customer.name}</span>
+        // Load customer content with orders and statistics
+        async function loadCustomerContent(customer) {
+            try {
+                const { db } = await import('./firebase-config.js');
+                const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                // Get customer orders
+                const ordersQuery = query(collection(db, 'orders'), where('customerInfo.email', '==', customer.email));
+                const ordersSnapshot = await getDocs(ordersQuery);
+                
+                const orders = [];
+                ordersSnapshot.forEach(doc => {
+                    orders.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Calculate statistics
+                const totalOrders = orders.length;
+                const totalSales = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+                const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+                const pendingOrders = orders.filter(order => order.status === 'pending').length;
+                const completedOrders = orders.filter(order => order.status === 'delivered').length;
+                
+                // Get most recent order for last order date
+                const lastOrderDate = orders.length > 0 ? 
+                    Math.max(...orders.map(order => new Date(order.orderDate).getTime())) : null;
+                
+                document.getElementById('customer-details-content').innerHTML = `
+                    <div class="form-section">
+                        <h3>Customer Information</h3>
+                        <div class="info-row">
+                            <label>Name:</label>
+                            <span>${customer.name}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Email:</label>
+                            <span>${customer.email}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Phone:</label>
+                            <span>${customer.phone || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Address:</label>
+                            <span id="customer-address-${customer.id}">${customer.address || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Joined Date:</label>
+                            <span>${new Date(customer.createdAt || Date.now()).toLocaleDateString()}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Last Order:</label>
+                            <span>${lastOrderDate ? new Date(lastOrderDate).toLocaleDateString() : 'No orders'}</span>
+                        </div>
                     </div>
-                    <div class="info-row">
-                        <label>Email:</label>
-                        <span>${customer.email}</span>
+                    
+                    <div class="form-section">
+                        <h3>Order Statistics</h3>
+                        <div class="info-row">
+                            <label>Total Orders:</label>
+                            <span class="final-price">${totalOrders}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Total Sales:</label>
+                            <span class="final-price">${typeof formatPrice !== 'undefined' ? formatPrice(totalSales) : '₹' + totalSales.toFixed(2)}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Average Order Value:</label>
+                            <span class="final-price">${typeof formatPrice !== 'undefined' ? formatPrice(avgOrderValue) : '₹' + avgOrderValue.toFixed(2)}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Pending Orders:</label>
+                            <span class="text-warning">${pendingOrders}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Completed Orders:</label>
+                            <span class="text-success">${completedOrders}</span>
+                        </div>
                     </div>
-                    <div class="info-row">
-                        <label>Phone:</label>
-                        <span>${customer.phone}</span>
+                    
+                    <div class="form-section">
+                        <h3>Recent Orders</h3>
+                        ${orders.length > 0 ? 
+                            orders.slice(0, 5).map(order => `
+                                <div class="info-row">
+                                    <label>Order #${order.orderNumber || order.id.substring(0, 8)}:</label>
+                                    <span>${typeof formatPrice !== 'undefined' ? formatPrice(order.total) : '₹' + order.total.toFixed(2)} - <span class="badge bg-${order.status === 'delivered' ? 'success' : order.status === 'pending' ? 'warning' : 'primary'}">${(order.status || 'pending').toUpperCase()}</span></span>
+                                </div>
+                            `).join('') : 
+                            '<div class="text-muted">No orders found</div>'
+                        }
                     </div>
-                    <div class="info-row">
-                        <label>Address:</label>
-                        <span style="text-align: right;">${customer.address}</span>
+                `;
+                
+                // Auto-clarify address if available
+                if (customer.address && customer.address !== 'N/A') {
+                    clarifyAddress(customer.id, customer.address);
+                }
+            } catch (error) {
+                console.error('Error loading customer content:', error);
+                document.getElementById('customer-details-content').innerHTML = `
+                    <div class="form-section">
+                        <h3>Customer Information</h3>
+                        <div class="info-row">
+                            <label>Name:</label>
+                            <span>${customer.name}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Email:</label>
+                            <span>${customer.email}</span>
+                        </div>
+                        <div class="text-danger">Error loading order data</div>
                     </div>
-                    <div class="info-row">
-                        <label>Joined Date:</label>
-                        <span>${new Date(customer.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <div class="info-row">
-                        <label>Last Login:</label>
-                        <span>${new Date(customer.lastLogin).toLocaleDateString()}</span>
-                    </div>
-                </div>
-            `;
+                `;
+            }
         }
         
 

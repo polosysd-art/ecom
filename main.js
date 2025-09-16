@@ -59,15 +59,36 @@ async function loadFeaturedProducts() {
 
 // Create product card HTML
 function createProductCard(product) {
-    return `
-        <div class="product-card">
-            <img src="${product.image || 'https://via.placeholder.com/250x200'}" alt="${product.name}">
-            <h3>${product.name}</h3>
-            <p>${product.description}</p>
-            <div class="price">$${product.price.toFixed(2)}</div>
-            <button class="btn add-to-cart" data-product-id="${product.id}">Add to Cart</button>
-        </div>
-    `;
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    
+    const img = document.createElement('img');
+    img.src = product.image || 'https://via.placeholder.com/250x200';
+    img.alt = product.name || '';
+    
+    const title = document.createElement('h3');
+    title.textContent = product.name || '';
+    
+    const desc = document.createElement('p');
+    desc.textContent = product.description || '';
+    
+    const price = document.createElement('div');
+    price.className = 'price';
+    const priceValue = isNaN(product.price) ? 0 : parseFloat(product.price);
+    price.textContent = `$${priceValue.toFixed(2)}`;
+    
+    const button = document.createElement('button');
+    button.className = 'btn add-to-cart';
+    button.dataset.productId = product.id;
+    button.textContent = 'Add to Cart';
+    
+    card.appendChild(img);
+    card.appendChild(title);
+    card.appendChild(desc);
+    card.appendChild(price);
+    card.appendChild(button);
+    
+    return card.outerHTML;
 }
 
 // Export for use in other files

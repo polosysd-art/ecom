@@ -45,7 +45,11 @@ async function loadCurrency() {
 
 // Format price with currency
 function formatPrice(amount) {
-    return `${currentCurrency}${parseFloat(amount).toFixed(2)}`;
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || !isFinite(numAmount)) {
+        return `${currentCurrency}0.00`;
+    }
+    return `${currentCurrency}${numAmount.toFixed(2)}`;
 }
 
 // Export functions

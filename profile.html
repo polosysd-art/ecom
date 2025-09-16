@@ -94,7 +94,11 @@
                             </div>
                             <div class="mb-3">
                                 <label for="user-address" class="form-label">Primary Address</label>
-                                <textarea class="form-control" id="user-address" rows="3"></textarea>
+                                <div class="d-flex gap-2 mb-2">
+                                    <button type="button" id="profile-detect-location-btn" class="btn btn-outline-success btn-sm"><i class="fas fa-location-arrow me-1"></i>Detect My Location</button>
+                                </div>
+                                <textarea class="form-control" id="user-address" rows="3" placeholder="Start typing your address..."></textarea>
+                                <div id="address-suggestions" class="list-group mt-2" style="display: none;"></div>
                             </div>
                             <button type="submit" class="btn btn-primary">Save Profile</button>
                             <button type="button" class="btn btn-secondary ms-2" onclick="cancelEdit()">Cancel</button>
@@ -124,6 +128,112 @@
             document.getElementById('profile-form').style.display = 'none';
             document.getElementById('profile-display').style.display = 'block';
         }
+        
+        // Auto-detect address functionality
+        let addressTimeout;
+        document.addEventListener('DOMContentLoaded', () => {
+            const addressInput = document.getElementById('user-address');
+            const suggestionsDiv = document.getElementById('address-suggestions');
+            
+            addressInput.addEventListener('input', (e) => {
+                clearTimeout(addressTimeout);
+                const query = e.target.value.trim();
+                
+                if (query.length < 3) {
+                    suggestionsDiv.style.display = 'none';
+                    return;
+                }
+                
+                addressTimeout = setTimeout(async () => {
+                    try {
+                        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`);
+                        const results = await response.json();
+                        
+                        if (results.length > 0) {
+                            suggestionsDiv.innerHTML = results.map(result => {
+                                const displayName = result.display_name.length > 80 ? 
+                                    result.display_name.substring(0, 80) + '...' : result.display_name;
+                                return `
+                                    <button type="button" class="list-group-item list-group-item-action" onclick="selectAddress('${result.display_name.replace(/'/g, "\\'")}')">  
+                                        <i class="fas fa-map-marker-alt me-2"></i>${displayName}
+                                    </button>
+                                `;
+                            }).join('');
+                            suggestionsDiv.style.display = 'block';
+                        } else {
+                            suggestionsDiv.style.display = 'none';
+                        }
+                    } catch (error) {
+                        console.error('Address search error:', error);
+                        suggestionsDiv.style.display = 'none';
+                    }
+                }, 500);
+            });
+        });
+        
+        function selectAddress(address) {
+            document.getElementById('user-address').value = address;
+            document.getElementById('address-suggestions').style.display = 'none';
+        }
+        
+        // Detect current location for profile
+        function detectProfileLocation() {
+            const detectBtn = document.getElementById('profile-detect-location-btn');
+            const addressInput = document.getElementById('user-address');
+            
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by this browser.');
+                return;
+            }
+            
+            // Confirm before requesting location
+            if (!confirm('This will request access to your location to auto-fill your address. Click OK to allow when prompted by your browser.')) {
+                return;
+            }
+            
+            detectBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Detecting...';
+            detectBtn.disabled = true;
+            
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    try {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`);
+                        const data = await response.json();
+                        
+                        if (data && data.display_name) {
+                            addressInput.value = data.display_name;
+                            detectBtn.innerHTML = '<i class="fas fa-check me-1"></i>Location Detected';
+                            detectBtn.className = 'btn btn-success btn-sm';
+                        } else {
+                            throw new Error('Address not found');
+                        }
+                    } catch (error) {
+                        alert('Could not get address from your location. Please enter manually.');
+                        detectBtn.innerHTML = '<i class="fas fa-location-arrow me-1"></i>Detect My Location';
+                        detectBtn.className = 'btn btn-outline-success btn-sm';
+                    }
+                    detectBtn.disabled = false;
+                },
+                (error) => {
+                    alert('Please allow location access when prompted by your browser, then try again.');
+                    detectBtn.innerHTML = '<i class="fas fa-location-arrow me-1"></i>Detect My Location';
+                    detectBtn.disabled = false;
+                }
+            );
+        }
+        
+        // Setup detect location button
+        document.addEventListener('DOMContentLoaded', () => {
+            const detectBtn = document.getElementById('profile-detect-location-btn');
+            if (detectBtn) {
+                detectBtn.onclick = detectProfileLocation;
+            }
+        });
+        
+        window.selectAddress = selectAddress;
     </script>
 </body>
 </html>

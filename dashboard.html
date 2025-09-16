@@ -51,17 +51,89 @@
                         <p class="text-muted">Welcome to the admin panel</p>
                     </div>
                     
-                    <div class="card">
-                        <div class="card-body">
-                            <h3 class="card-title">Quick Navigation</h3>
-                            <p class="card-text">Use the sidebar to navigate to different management sections:</p>
-                            <ul class="list-unstyled">
-                                <li class="py-2 border-bottom">📦 <strong>Products</strong> - Manage your product catalog</li>
-                                <li class="py-2 border-bottom">📄 <strong>Orders</strong> - View and process customer orders</li>
-                                <li class="py-2 border-bottom">👥 <strong>CRM</strong> - Customer relationship management</li>
-                                <li class="py-2 border-bottom">⚙️ <strong>Settings</strong> - Store configuration and product attributes</li>
-                                <li class="py-2">📝 <strong>Page Settings</strong> - Customize page content</li>
-                            </ul>
+                    <!-- Status Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 id="total-orders">0</h4>
+                                            <p class="mb-0">Total Orders</p>
+                                        </div>
+                                        <i class="fas fa-shopping-bag fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 id="total-products">0</h4>
+                                            <p class="mb-0">Products</p>
+                                        </div>
+                                        <i class="fas fa-box fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 id="pending-orders">0</h4>
+                                            <p class="mb-0">Pending Orders</p>
+                                        </div>
+                                        <i class="fas fa-clock fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 id="low-stock">0</h4>
+                                            <p class="mb-0">Low Stock</p>
+                                        </div>
+                                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Recent Orders</h5>
+                                </div>
+                                <div class="card-body" id="recent-orders">
+                                    <div class="text-center py-3">
+                                        <div class="spinner-border" role="status"></div>
+                                        <p class="mt-2">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Low Stock Products</h5>
+                                </div>
+                                <div class="card-body" id="low-stock-products">
+                                    <div class="text-center py-3">
+                                        <div class="spinner-border" role="status"></div>
+                                        <p class="mt-2">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -84,5 +156,88 @@
     <script type="module" src="auth-check.js"></script>
     <script type="module" src="admin.js"></script>
     <script type="module" src="settings.js"></script>
+    <script src="currency.js"></script>
+    
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { collection, getDocs, query, where, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+        
+        // Load dashboard statistics
+        async function loadDashboardStats() {
+            try {
+                // Load currency settings
+                await loadCurrency();
+                // Load orders
+                const ordersSnapshot = await getDocs(collection(db, 'orders'));
+                const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Load products
+                const productsSnapshot = await getDocs(collection(db, 'products'));
+                const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Update statistics
+                document.getElementById('total-orders').textContent = orders.length;
+                document.getElementById('total-products').textContent = products.length;
+                
+                const pendingOrders = orders.filter(order => order.status === 'pending');
+                document.getElementById('pending-orders').textContent = pendingOrders.length;
+                
+                const lowStockProducts = products.filter(product => {
+                    const stock = product.stock || 0;
+                    const minStock = product.minStock || 0;
+                    return stock <= minStock && minStock > 0;
+                });
+                document.getElementById('low-stock').textContent = lowStockProducts.length;
+                
+                // Load recent orders
+                const recentOrders = orders
+                    .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
+                    .slice(0, 5);
+                
+                const recentOrdersHtml = recentOrders.length > 0 ? 
+                    recentOrders.map(order => `
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="cursor: pointer;" onclick="window.location.href='orders.html?select=${order.id}'">
+                            <div>
+                                <strong>${order.customerInfo?.name || 'Guest'}</strong>
+                                <br><small class="text-muted">${formatPrice(order.total || 0)}</small>
+                            </div>
+                            <span class="badge bg-${order.status === 'pending' ? 'warning' : order.status === 'delivered' ? 'success' : 'primary'}">
+                                ${order.status || 'pending'}
+                            </span>
+                        </div>
+                    `).join('') : '<p class="text-muted">No recent orders</p>';
+                
+                document.getElementById('recent-orders').innerHTML = recentOrdersHtml;
+                
+                // Load low stock products
+                const lowStockHtml = lowStockProducts.length > 0 ?
+                    lowStockProducts.slice(0, 5).map(product => `
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <div>
+                                <strong>${product.name}</strong>
+                                <br><small class="text-muted">Stock: ${product.stock || 0}</small>
+                            </div>
+                            <span class="badge bg-danger">Low Stock</span>
+                        </div>
+                    `).join('') : '<p class="text-muted">All products in stock</p>';
+                
+                document.getElementById('low-stock-products').innerHTML = lowStockHtml;
+                
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+                document.getElementById('recent-orders').innerHTML = '<p class="text-danger">Error loading data</p>';
+                document.getElementById('low-stock-products').innerHTML = '<p class="text-danger">Error loading data</p>';
+            }
+        }
+        
+
+        // Load stats on page load
+        document.addEventListener('DOMContentLoaded', loadDashboardStats);
+        
+        // Refresh stats every 30 seconds
+        setInterval(loadDashboardStats, 30000);
+        
+
+    </script>
 </body>
 </html>

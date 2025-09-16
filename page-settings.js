@@ -6,7 +6,16 @@ import { ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/fireba
 // Toggle section function
 window.toggleSection = function(sectionId) {
     const content = document.getElementById(sectionId);
+    if (!content) {
+        console.error('Section not found:', sectionId);
+        return;
+    }
+    
     const header = content.previousElementSibling;
+    if (!header) {
+        console.error('Header not found for section:', sectionId);
+        return;
+    }
     
     content.classList.toggle('expanded');
     header.classList.toggle('expanded');

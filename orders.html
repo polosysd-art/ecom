@@ -134,10 +134,16 @@
 
     <script type="module" src="navigation.js"></script>
     <script type="module" src="auth-check.js"></script>
+    <script src="currency.js"></script>
     <script>
         // Load orders from Firebase
         async function loadOrders() {
             try {
+                // Load currency settings
+                if (typeof loadCurrency !== 'undefined') {
+                    await loadCurrency();
+                }
+                
                 const { db } = await import('./firebase-config.js');
                 const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
                 
@@ -161,6 +167,15 @@
                 window.allOrders = orders;
                 displayOrders(orders);
                 updateStats(orders);
+                
+                // Check for select parameter and auto-select order
+                const urlParams = new URLSearchParams(window.location.search);
+                const selectOrderId = urlParams.get('select');
+                if (selectOrderId) {
+                    setTimeout(() => {
+                        selectOrder(selectOrderId);
+                    }, 100);
+                }
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('orders-list').innerHTML = `<div class="chat-item"><div class="chat-info"><div class="chat-name">Error: ${error.message}</div></div></div>`;
@@ -179,8 +194,8 @@
                         #${order.id.substring(0, 2).toUpperCase()}
                     </div>
                     <div class="chat-info">
-                        <div class="chat-name">Order #${order.orderNumber || order.id.substring(0, 8)}</div>
-                        <div class="chat-preview">${order.customerInfo.name} - ₹${order.total.toFixed(2)}</div>
+                        <div class="chat-name">Order #${order.orderNumber || order.id.substring(0, 8).toUpperCase()}</div>
+                        <div class="chat-preview">${order.customerInfo.name} - ${typeof formatPrice !== 'undefined' ? formatPrice(order.total) : '₹' + order.total.toFixed(2)}</div>
                     </div>
                     <div class="badge-container">
                         <div class="${getStatusBadgeClass(order.status)}">${(order.status || 'pending').toUpperCase()}</div>
@@ -240,7 +255,7 @@
             document.getElementById('detail-header').style.display = 'flex';
             
             // Update order details
-            document.getElementById('order-title').textContent = `Order #${order.orderNumber || order.id.substring(0, 8)}`;
+            document.getElementById('order-title').textContent = `Order #${order.orderNumber || order.id.substring(0, 8).toUpperCase()}`;
             document.getElementById('order-status-select').value = order.status || 'pending';
             document.getElementById('order-status-select-mobile').value = order.status || 'pending';
             
@@ -269,12 +284,12 @@
                     ${order.items.map(item => `
                         <div class="info-row">
                             <label>${item.name} x${item.quantity}:</label>
-                            <span class="final-price">₹${(item.price * item.quantity).toFixed(2)}</span>
+                            <span class="final-price">${typeof formatPrice !== 'undefined' ? formatPrice(item.price * item.quantity) : '₹' + (item.price * item.quantity).toFixed(2)}</span>
                         </div>
                     `).join('')}
                     <div class="info-row" style="border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px;">
                         <label><strong>Total:</strong></label>
-                        <span class="final-price"><strong>₹${order.total.toFixed(2)}</strong></span>
+                        <span class="final-price"><strong>${typeof formatPrice !== 'undefined' ? formatPrice(order.total) : '₹' + order.total.toFixed(2)}</strong></span>
                     </div>
                 </div>
                 
@@ -386,7 +401,7 @@
         
         // Show mobile modal
         function showMobileModal(order) {
-            document.getElementById('mobile-order-title').textContent = `Order #${order.orderNumber || order.id.substring(0, 8)}`;
+            document.getElementById('mobile-order-title').textContent = `Order #${order.orderNumber || order.id.substring(0, 8).toUpperCase()}`;
             document.getElementById('mobile-order-status').value = order.status || 'pending';
             
             document.getElementById('mobile-order-content').innerHTML = `
@@ -414,12 +429,12 @@
                     ${order.items.map(item => `
                         <div class="info-row">
                             <label>${item.name} x${item.quantity}:</label>
-                            <span class="final-price">₹${(item.price * item.quantity).toFixed(2)}</span>
+                            <span class="final-price">${typeof formatPrice !== 'undefined' ? formatPrice(item.price * item.quantity) : '₹' + (item.price * item.quantity).toFixed(2)}</span>
                         </div>
                     `).join('')}
                     <div class="info-row" style="border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px;">
                         <label><strong>Total:</strong></label>
-                        <span class="final-price"><strong>₹${order.total.toFixed(2)}</strong></span>
+                        <span class="final-price"><strong>${typeof formatPrice !== 'undefined' ? formatPrice(order.total) : '₹' + order.total.toFixed(2)}</strong></span>
                     </div>
                 </div>
                 <div class="form-section">
@@ -517,7 +532,7 @@
             const rawPhone = selectedOrder.customerInfo.phone.replace(/\D/g, '');
             const last10Digits = rawPhone.slice(-10);
             const formattedPhone = `+91${last10Digits}`;
-            const message = `Hi! Regarding your Order #${selectedOrder.orderNumber || selectedOrder.id.substring(0, 8)}`;
+            const message = `Hi! Regarding your Order #${selectedOrder.orderNumber || selectedOrder.id.substring(0, 8).toUpperCase()}`;
             const whatsappLink = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
             
             window.open(whatsappLink, '_blank');

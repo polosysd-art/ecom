@@ -101,14 +101,9 @@ class Navigation {
         }
     }
 
-    updateCartCount() {
-        const cartCountEl = document.querySelector('.cart-count');
-        if (cartCountEl) {
-            // Get cart from localStorage or use 0
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-            cartCountEl.textContent = totalItems;
-            cartCountEl.style.display = totalItems > 0 ? 'inline' : 'none';
+    async updateCartCount() {
+        if (window.cartManager) {
+            await window.cartManager.updateCartCount();
         }
     }
 
@@ -140,14 +135,52 @@ class Navigation {
             onAuthStateChanged(auth, (user) => {
                 this.currentUser = user;
                 this.updateAuthUI();
+                
+                // Update cart manager with current user
+                if (window.cartManager) {
+                    window.cartManager.setCurrentUser(user);
+                    if (user) {
+                        // Migrate guest cart to user cart on login
+                        window.cartManager.migrateGuestCart();
+                    }
+                }
+                
+                this.updateCartCount(); // Update cart count when auth state changes
             });
             
             this.signOut = signOut;
             this.auth = auth;
+            
+            // Initialize notifications
+            this.initNotifications();
+            
+            // Initialize cart manager
+            this.initCartManager();
         } catch (error) {
             console.error('DEBUG: Firebase setup failed:', error);
             this.currentUser = null;
             this.updateAuthUI();
+        }
+    }
+
+    // Initialize cart manager
+    async initCartManager() {
+        try {
+            const cartModule = await import('./cart-manager.js');
+            if (window.cartManager) {
+                window.cartManager.setCurrentUser(this.currentUser);
+            }
+        } catch (error) {
+            console.log('Cart manager not available:', error);
+        }
+    }
+
+    // Initialize notification system
+    async initNotifications() {
+        try {
+            const notificationModule = await import('./notifications.js');
+        } catch (error) {
+            console.log('Notifications not available:', error);
         }
     }
 
@@ -198,6 +231,7 @@ class Navigation {
             }
             
             if (this.signOut && this.auth) {
+                // Don't clear user's cart on logout - preserve it for next login
                 await this.signOut(this.auth);
                 
                 window.location.href = 'index.html';
@@ -341,10 +375,10 @@ class Navigation {
         const heroSubtitle = document.getElementById('hero-subtitle');
         
         if (heroTitle) {
-            heroTitle.textContent = data.heroTitle || 'Welcome to Our Store';
+            heroTitle.textContent = (data.heroTitle || 'Welcome to Our Store').substring(0, 100);
         }
         if (heroSubtitle) {
-            heroSubtitle.textContent = data.heroSubtitle || 'Find amazing products at great prices';
+            heroSubtitle.textContent = (data.heroSubtitle || 'Find amazing products at great prices').substring(0, 200);
         }
     }
 
@@ -365,6 +399,9 @@ class Navigation {
 
     // Check if cache is fresh (less than 5 minutes old)
     isCacheFresh(type) {
+        if (!this.pageCache.lastUpdated[type]) {
+            return false;
+        }
         const cacheAge = Date.now() - this.pageCache.lastUpdated[type];
         return cacheAge < 300000; // 5 minutes
     }
@@ -418,3 +455,13 @@ window.handleLogout = async function() {
         await window.navigation.handleLogout();
     }
 };
+
+// Add notification permission request on page load
+if ('Notification' in window && Notification.permission === 'default') {
+    // Show a subtle prompt for notifications
+    setTimeout(() => {
+        if (confirm('Enable notifications to get updates about your orders?')) {
+            Notification.requestPermission();
+        }
+    }, 3000);
+}

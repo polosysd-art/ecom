@@ -54,30 +54,40 @@ function renderAttributeList(attributeType) {
         return;
     }
     
-    if (attributeType === 'vatRates') {
-        container.innerHTML = items.map(item => {
-            const isDefault = attributes.defaultVat == item;
-            return `
-                <div class="attribute-item" onclick="showAttributeOptions('${attributeType}', '${item}')" style="cursor: pointer;">
-                    <span>${item}%</span>
-                    ${isDefault ? '<span class="badge bg-success ms-2">Default</span>' : ''}
-                </div>
-            `;
-        }).join('');
-    } else {
-        container.innerHTML = items.map(item => `
-            <div class="attribute-item" onclick="showAttributeOptions('${attributeType}', '${item}')" style="cursor: pointer;">
-                <span>${item}</span>
-            </div>
-        `).join('');
-    }
+    container.innerHTML = '';
+    
+    items.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'attribute-item';
+        itemDiv.style.cursor = 'pointer';
+        itemDiv.addEventListener('click', () => showAttributeOptions(attributeType, item));
+        
+        const span = document.createElement('span');
+        span.textContent = attributeType === 'vatRates' ? `${item}%` : item;
+        itemDiv.appendChild(span);
+        
+        if (attributeType === 'vatRates' && attributes.defaultVat == item) {
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-success ms-2';
+            badge.textContent = 'Default';
+            itemDiv.appendChild(badge);
+        }
+        
+        container.appendChild(itemDiv);
+    });
 }
 
 // Add new attribute
 window.addAttribute = async function(attributeType) {
-    const value = prompt(`Enter new ${attributeType.slice(0, -1)}:`);
+    const value = window.prompt(`Enter new ${attributeType.slice(0, -1)}:`);
     if (value && value.trim()) {
         const trimmedValue = value.trim();
+        
+        // Validate input length and content
+        if (trimmedValue.length > 50) {
+            showToast('Value too long (max 50 characters)', 'error');
+            return;
+        }
         
         if (!attributes[attributeType].includes(trimmedValue)) {
             attributes[attributeType].push(trimmedValue);
@@ -93,7 +103,6 @@ window.addAttribute = async function(attributeType) {
 
 // Show attribute options window
 window.showAttributeOptions = function(attributeType, value) {
-    // Remove existing popup
     const existing = document.getElementById('attribute-popup');
     if (existing) existing.remove();
     
@@ -114,19 +123,32 @@ window.showAttributeOptions = function(attributeType, value) {
         text-align: center;
     `;
     
-    popup.innerHTML = `
-        <h6 class="mb-3">${value}</h6>
-        <div class="d-flex gap-2 justify-content-center">
-            <button class="btn btn-primary btn-sm" onclick="editAttribute('${attributeType}', '${value}'); closePopup()">
-                <i class="fas fa-edit"></i> Edit
-            </button>
-            <button class="btn btn-danger btn-sm" onclick="deleteAttribute('${attributeType}', '${value}')">
-                <i class="fas fa-trash"></i> Delete
-            </button>
-        </div>
-    `;
+    const title = document.createElement('h6');
+    title.className = 'mb-3';
+    title.textContent = value;
     
-    // Add backdrop
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'd-flex gap-2 justify-content-center';
+    
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-primary btn-sm';
+    editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+    editBtn.addEventListener('click', () => {
+        editAttribute(attributeType, value);
+        closePopup();
+    });
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn btn-danger btn-sm';
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+    deleteBtn.addEventListener('click', () => deleteAttribute(attributeType, value));
+    
+    buttonContainer.appendChild(editBtn);
+    buttonContainer.appendChild(deleteBtn);
+    
+    popup.appendChild(title);
+    popup.appendChild(buttonContainer);
+    
     const backdrop = document.createElement('div');
     backdrop.id = 'popup-backdrop';
     backdrop.style.cssText = `
@@ -138,7 +160,7 @@ window.showAttributeOptions = function(attributeType, value) {
         background: rgba(0,0,0,0.3);
         z-index: 9999;
     `;
-    backdrop.onclick = closePopup;
+    backdrop.addEventListener('click', closePopup);
     
     document.body.appendChild(backdrop);
     document.body.appendChild(popup);
@@ -154,9 +176,14 @@ window.closePopup = function() {
 
 // Edit attribute
 window.editAttribute = async function(attributeType, oldValue) {
-    const newValue = prompt(`Edit ${attributeType.slice(0, -1)}:`, oldValue);
+    const newValue = window.prompt(`Edit ${attributeType.slice(0, -1)}:`, oldValue);
     if (newValue && newValue.trim() && newValue.trim() !== oldValue) {
         const trimmedValue = newValue.trim();
+        
+        if (trimmedValue.length > 50) {
+            showToast('Value too long (max 50 characters)', 'error');
+            return;
+        }
         
         if (!attributes[attributeType].includes(trimmedValue)) {
             const index = attributes[attributeType].indexOf(oldValue);
@@ -213,13 +240,25 @@ function showToast(message, type = 'info') {
     toast.id = 'custom-toast';
     toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
     toast.style.cssText = `top: 80px; right: 20px; z-index: 10000; min-width: 300px;`;
-    toast.innerHTML = `
-        <div class="d-flex align-items-center">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
-            <span>${message}</span>
-            <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
-        </div>
-    `;
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'd-flex align-items-center';
+    
+    const icon = document.createElement('i');
+    icon.className = `fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2`;
+    
+    const span = document.createElement('span');
+    span.textContent = message;
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close ms-auto';
+    closeBtn.addEventListener('click', () => toast.remove());
+    
+    alertDiv.appendChild(icon);
+    alertDiv.appendChild(span);
+    alertDiv.appendChild(closeBtn);
+    toast.appendChild(alertDiv);
     
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
